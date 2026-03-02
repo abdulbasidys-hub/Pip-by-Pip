@@ -32,145 +32,146 @@ const ASSETS = [
   'XAU/USD (Gold)','XAG/USD (Silver)','NAS100 (Nasdaq)','SPX500 (S&P 500)'
 ];
 
+const SESSIONS = ['No Session','London','New York','Asia','Overlap'];
+
 // ─────────────────────────────────────────────────────────────
-//  STYLES
+//  THEME STYLES
 // ─────────────────────────────────────────────────────────────
+const DARK_THEME = `
+  --bg:        #0c0d12;
+  --bg1:       #11131a;
+  --bg2:       #161820;
+  --bg3:       #1c1e28;
+  --bg4:       #232633;
+  --line:      rgba(255,255,255,0.06);
+  --line2:     rgba(255,255,255,0.11);
+  --accent:    #e8a045;
+  --accent-d:  #c4832a;
+  --accent-g:  rgba(232,160,69,0.10);
+  --accent-gs: rgba(232,160,69,0.05);
+  --green:     #4ade9a;
+  --green-g:   rgba(74,222,154,0.10);
+  --red:       #f06b6b;
+  --red-g:     rgba(240,107,107,0.10);
+  --blue:      #6db8ff;
+  --text:      #c2c5d6;
+  --text2:     #676a84;
+  --text3:     #383c52;
+  --white:     #eef0ff;
+`;
+
+const LIGHT_THEME = `
+  --bg:        #f5f4f0;
+  --bg1:       #eeede9;
+  --bg2:       #e8e7e3;
+  --bg3:       #dddcda;
+  --bg4:       #d3d2cf;
+  --line:      rgba(0,0,0,0.07);
+  --line2:     rgba(0,0,0,0.13);
+  --accent:    #c4761a;
+  --accent-d:  #a35e0e;
+  --accent-g:  rgba(196,118,26,0.10);
+  --accent-gs: rgba(196,118,26,0.05);
+  --green:     #1a9e60;
+  --green-g:   rgba(26,158,96,0.10);
+  --red:       #d14040;
+  --red-g:     rgba(209,64,64,0.10);
+  --blue:      #2a6dbf;
+  --text:      #2e2d2a;
+  --text2:     #7a7872;
+  --text3:     #aaa9a4;
+  --white:     #1a1916;
+`;
+
 const S = `
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:        #07080f;
-  --bg1:       #0d0e1a;
-  --bg2:       #121420;
-  --bg3:       #181a28;
-  --bg4:       #1e2030;
-  --line:      rgba(255,255,255,0.06);
-  --line2:     rgba(255,255,255,0.10);
-  --cyan:      #00d4ff;
-  --cyan-d:    #00a8cc;
-  --cyan-g:    rgba(0,212,255,0.10);
-  --cyan-gs:   rgba(0,212,255,0.04);
-  --gold:      #f0b429;
-  --gold-g:    rgba(240,180,41,0.12);
-  --green:     #34d399;
-  --green-g:   rgba(52,211,153,0.10);
-  --red:       #f87171;
-  --red-g:     rgba(248,113,113,0.10);
-  --text:      #c8cce8;
-  --text2:     #6b7094;
-  --text3:     #363952;
-  --white:     #eef0ff;
-  --bebas:     'Bebas Neue',sans-serif;
-  --serif:     'Crimson Pro',serif;
-  --mono:      'JetBrains Mono',monospace;
-  --r:         8px;
-  --r2:        12px;
+:root{${DARK_THEME}
+  --display:   'DM Serif Display',serif;
+  --sans:      'Syne',sans-serif;
+  --mono:      'DM Mono',monospace;
+  --r:         10px;
+  --r2:        14px;
+  --sidebar-w: 220px;
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--mono);overflow-x:hidden}
+[data-theme="light"]{${LIGHT_THEME}}
 
-/* ── Noise texture overlay ── */
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
-  background-size:200px 200px;
-  opacity:0.6;
-}
-
-/* ── Ambient glow blobs ── */
-.ambient{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.ambient-blob{
-  position:absolute;border-radius:50%;filter:blur(120px);
-  animation:blobDrift 20s ease-in-out infinite alternate;
-}
-.blob1{width:600px;height:600px;top:-200px;left:10%;background:rgba(0,212,255,0.03);animation-delay:0s}
-.blob2{width:500px;height:500px;bottom:-100px;right:5%;background:rgba(240,180,41,0.025);animation-delay:-7s}
-.blob3{width:400px;height:400px;top:40%;left:40%;background:rgba(52,211,153,0.02);animation-delay:-14s}
-@keyframes blobDrift{
-  0%{transform:translate(0,0) scale(1)}
-  33%{transform:translate(40px,-30px) scale(1.05)}
-  66%{transform:translate(-20px,50px) scale(0.95)}
-  100%{transform:translate(30px,20px) scale(1.02)}
-}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden;transition:background 0.3s,color 0.3s}
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
 
-/* ── Page transitions ── */
-@keyframes pageIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes slideRight{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
-@keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* ── Animations ── */
+@keyframes pageIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes drawLine{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
-@keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(0,212,255,0.3)}50%{box-shadow:0 0 20px rgba(0,212,255,0.6)}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes shimmerSlide{0%{background-position:-200% center}100%{background-position:200% center}}
-@keyframes breathe{0%,100%{opacity:0.4;transform:scale(1)}50%{opacity:0.7;transform:scale(1.01)}}
+@keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
 
-.page-enter{animation:pageIn 0.45s cubic-bezier(0.16,1,0.3,1) both}
-.s0{animation-delay:0s}.s1{animation-delay:0.06s}.s2{animation-delay:0.12s}.s3{animation-delay:0.18s}.s4{animation-delay:0.24s}.s5{animation-delay:0.30s}
+.page-enter{animation:pageIn 0.4s cubic-bezier(0.16,1,0.3,1) both}
+.s0{animation-delay:0ms}.s1{animation-delay:60ms}.s2{animation-delay:120ms}.s3{animation-delay:180ms}.s4{animation-delay:240ms}.s5{animation-delay:300ms}
 
-/* ── AUTH ── */
+/* ── Auth ── */
 .auth-shell{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
-  position:relative;z-index:1;padding:24px;
+  position:relative;padding:24px;
+  background:var(--bg);
 }
-.auth-wrap{width:100%;max-width:420px;position:relative}
-.auth-glow{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);
-  width:500px;height:500px;border-radius:50%;
-  background:radial-gradient(circle,rgba(0,212,255,0.06) 0%,transparent 70%);
-  pointer-events:none;
+.auth-bg{
+  position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 80% 60% at 20% 40%,rgba(232,160,69,0.06) 0%,transparent 70%),
+             radial-gradient(ellipse 60% 50% at 80% 70%,rgba(74,222,154,0.04) 0%,transparent 70%);
 }
-.auth-brand{text-align:center;margin-bottom:48px;animation:pageIn 0.6s cubic-bezier(0.16,1,0.3,1)}
+[data-theme="light"] .auth-bg{
+  background:radial-gradient(ellipse 80% 60% at 20% 40%,rgba(196,118,26,0.08) 0%,transparent 70%),
+             radial-gradient(ellipse 60% 50% at 80% 70%,rgba(26,158,96,0.05) 0%,transparent 70%);
+}
+.auth-wrap{width:100%;max-width:420px;position:relative;z-index:1}
+.auth-brand{text-align:center;margin-bottom:44px}
 .brand-title{
-  font-family:var(--bebas);font-size:72px;letter-spacing:4px;
-  background:linear-gradient(135deg,var(--white) 0%,var(--cyan) 50%,var(--white) 100%);
-  background-size:200% auto;
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  animation:shimmerSlide 4s linear infinite;
-  line-height:1;
+  font-family:var(--sans);font-size:13px;letter-spacing:6px;text-transform:uppercase;
+  color:var(--accent);font-weight:700;margin-bottom:10px;
+}
+.brand-mark{
+  font-family:var(--display);font-size:64px;
+  color:var(--white);line-height:0.9;
+  font-style:italic;
 }
 .brand-sub{
-  font-size:9px;letter-spacing:6px;text-transform:uppercase;
-  color:var(--text3);margin-top:10px;font-weight:400;
+  font-size:10px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--text3);margin-top:12px;font-family:var(--mono);
 }
 .auth-card{
-  background:linear-gradient(145deg,var(--bg2),var(--bg1));
-  border:1px solid var(--line2);border-radius:16px;
+  background:var(--bg2);
+  border:1px solid var(--line2);border-radius:18px;
   overflow:hidden;position:relative;
-  animation:pageIn 0.6s 0.1s cubic-bezier(0.16,1,0.3,1) both;
-  box-shadow:0 24px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.03) inset;
-}
-.auth-card-shine{
-  position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent 0%,rgba(0,212,255,0.4) 50%,transparent 100%);
+  box-shadow:0 24px 80px rgba(0,0,0,0.25);
 }
 .auth-card-body{padding:36px 40px}
 .auth-eyebrow{
-  font-size:8px;letter-spacing:4px;text-transform:uppercase;
-  color:var(--cyan);margin-bottom:6px;
-  display:flex;align-items:center;gap:8px;
+  font-size:9px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:6px;font-family:var(--mono);
 }
-.auth-eyebrow::before{content:'';width:16px;height:1px;background:var(--cyan);opacity:0.5}
 .auth-heading{
-  font-family:var(--serif);font-style:italic;font-size:30px;
-  color:var(--white);margin-bottom:8px;letter-spacing:-0.3px;font-weight:300;
+  font-family:var(--display);font-style:italic;font-size:28px;
+  color:var(--white);margin-bottom:8px;font-weight:400;
 }
-.auth-desc{font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:28px}
+.auth-desc{font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:28px;font-family:var(--sans)}
 .auth-err{
-  background:var(--red-g);border:1px solid rgba(248,113,113,0.2);
+  background:var(--red-g);border:1px solid rgba(240,107,107,0.2);
   border-radius:var(--r);padding:10px 14px;
-  font-size:10px;color:var(--red);margin-bottom:16px;letter-spacing:0.3px;
+  font-size:10px;color:var(--red);margin-bottom:16px;letter-spacing:0.3px;font-family:var(--mono);
 }
 
 /* ── Form fields ── */
-.f{margin-bottom:18px;animation:slideRight 0.4s cubic-bezier(0.16,1,0.3,1) both}
+.f{margin-bottom:18px}
 .f label{
-  display:block;font-size:8px;letter-spacing:3px;text-transform:uppercase;
-  color:var(--text2);margin-bottom:8px;font-weight:500;
+  display:block;font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--text2);margin-bottom:8px;font-weight:600;font-family:var(--sans);
 }
 .f input,.f select,.f textarea{
   width:100%;background:var(--bg3);
@@ -180,383 +181,390 @@ body::before{
   -webkit-appearance:none;appearance:none;
 }
 .f input:focus,.f select:focus,.f textarea:focus{
-  border-color:var(--cyan);background:var(--bg4);
-  box-shadow:0 0 0 3px rgba(0,212,255,0.08);
+  border-color:var(--accent);background:var(--bg4);
+  box-shadow:0 0 0 3px var(--accent-g);
 }
-.f input::placeholder{color:var(--text3)}
+.f input::placeholder,.f textarea::placeholder{color:var(--text3)}
 .f textarea{min-height:90px;resize:vertical;line-height:1.65}
 
 /* ── Buttons ── */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   padding:12px 22px;border-radius:var(--r);
-  font-family:var(--mono);font-size:10px;font-weight:600;
+  font-family:var(--sans);font-size:10px;font-weight:700;
   letter-spacing:2px;text-transform:uppercase;cursor:pointer;
   transition:all 0.2s cubic-bezier(0.16,1,0.3,1);border:1px solid transparent;
-  position:relative;overflow:hidden;
 }
-.btn::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,0.08) 0%,transparent 50%);
-  opacity:0;transition:opacity 0.2s;
-}
-.btn:hover::after{opacity:1}
 .btn-primary{
-  background:linear-gradient(135deg,var(--cyan) 0%,var(--cyan-d) 100%);
-  color:#07080f;border-color:var(--cyan);
-  box-shadow:0 4px 16px rgba(0,212,255,0.25);
+  background:var(--accent);color:#fff;border-color:var(--accent);
+  box-shadow:0 4px 16px rgba(0,0,0,0.15);
 }
-.btn-primary:hover{box-shadow:0 6px 24px rgba(0,212,255,0.4);transform:translateY(-1px)}
-.btn-primary:active{transform:translateY(0);box-shadow:0 2px 8px rgba(0,212,255,0.2)}
+.btn-primary:hover{background:var(--accent-d);box-shadow:0 6px 24px rgba(0,0,0,0.2);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
 .btn-ghost{
   background:transparent;color:var(--text2);
   border-color:var(--line2);
 }
 .btn-ghost:hover{border-color:var(--line2);color:var(--text);background:var(--bg3)}
-.btn-danger{background:transparent;color:var(--red);border-color:rgba(248,113,113,0.2)}
+.btn-danger{background:transparent;color:var(--red);border-color:rgba(240,107,107,0.2)}
 .btn-danger:hover{background:var(--red-g)}
 .btn-full{width:100%}
 .btn-sm{padding:7px 14px;font-size:9px}
 .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important}
 
 /* ── App Shell ── */
-.shell{display:flex;min-height:100vh;position:relative;z-index:1}
+.shell{display:flex;min-height:100vh;position:relative}
 
 /* ── Sidebar ── */
 .sidebar{
-  width:210px;flex-shrink:0;
-  background:linear-gradient(180deg,var(--bg1) 0%,var(--bg) 100%);
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--bg1);
   border-right:1px solid var(--line);
   display:flex;flex-direction:column;position:fixed;height:100vh;
-  z-index:100;top:0;left:0;
+  z-index:100;top:0;left:0;transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
 }
-.sb-top{padding:24px 18px 20px;border-bottom:1px solid var(--line)}
+.sb-top{padding:22px 18px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.sb-brand{display:flex;flex-direction:column;gap:2px}
 .sb-logo{
-  font-family:var(--bebas);font-size:26px;letter-spacing:3px;
-  color:var(--white);line-height:1;
+  font-family:var(--display);font-style:italic;font-size:22px;
+  color:var(--white);line-height:1;letter-spacing:-0.3px;
 }
-.sb-logo span{color:var(--cyan)}
+.sb-logo span{color:var(--accent)}
+.sb-ver{font-size:8px;letter-spacing:2px;color:var(--text3);font-family:var(--mono);text-transform:uppercase}
 .sb-sync{
-  display:flex;align-items:center;gap:6px;margin-top:8px;
-  font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);
+  display:flex;align-items:center;gap:6px;
+  font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-family:var(--mono);
 }
 .sync-dot{
   width:6px;height:6px;border-radius:50%;background:var(--green);
   box-shadow:0 0 8px var(--green);
-  animation:breathe 3s ease-in-out infinite;
+  animation:pulse 2.5s ease-in-out infinite;
 }
-.nav{flex:1;padding:14px 10px;overflow-y:auto}
+.nav{flex:1;padding:12px 8px;overflow-y:auto}
 .nb{
   width:100%;display:flex;align-items:center;gap:10px;
   padding:10px 12px;border-radius:var(--r);
-  font-family:var(--mono);font-size:10px;font-weight:500;
-  letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--text3);background:none;border:none;cursor:pointer;
-  transition:all 0.18s cubic-bezier(0.16,1,0.3,1);text-align:left;
-  margin-bottom:2px;position:relative;
+  font-family:var(--sans);font-size:11px;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;
+  color:var(--text2);background:none;border:none;cursor:pointer;
+  transition:all 0.18s;text-align:left;margin-bottom:2px;position:relative;
 }
-.nb svg{opacity:0.4;transition:opacity 0.18s;flex-shrink:0}
-.nb:hover{color:var(--text);background:rgba(255,255,255,0.04)}
-.nb:hover svg{opacity:0.7}
-.nb.on{color:var(--cyan);background:var(--cyan-gs);border:1px solid rgba(0,212,255,0.12)}
-.nb.on svg{opacity:1;color:var(--cyan)}
+.nb svg{opacity:0.5;transition:opacity 0.18s;flex-shrink:0}
+.nb:hover{color:var(--text);background:var(--bg2)}
+.nb:hover svg{opacity:0.8}
+.nb.on{color:var(--accent);background:var(--accent-gs);border:1px solid rgba(232,160,69,0.15)}
+.nb.on svg{opacity:1;color:var(--accent)}
 .nb.on::before{
-  content:'';position:absolute;left:0;top:20%;bottom:20%;
-  width:2px;border-radius:1px;background:var(--cyan);
-  box-shadow:0 0 8px var(--cyan);
+  content:'';position:absolute;left:0;top:25%;bottom:25%;
+  width:2px;border-radius:1px;background:var(--accent);
 }
-.sb-user{padding:14px 10px;border-top:1px solid var(--line)}
+.sb-bottom{padding:10px 8px;border-top:1px solid var(--line)}
 .user-tile{
   display:flex;align-items:center;gap:10px;padding:10px 12px;
   border-radius:var(--r);background:var(--bg2);
   border:1px solid var(--line);cursor:pointer;
   transition:all 0.18s;margin-bottom:8px;
 }
-.user-tile:hover{border-color:rgba(0,212,255,0.25);background:var(--bg3)}
+.user-tile:hover{border-color:rgba(232,160,69,0.25);background:var(--bg3)}
 .avatar{
-  width:30px;height:30px;border-radius:6px;
-  background:linear-gradient(135deg,var(--cyan-gs),var(--bg4));
-  border:1px solid rgba(0,212,255,0.25);
+  width:30px;height:30px;border-radius:8px;
+  background:var(--accent-g);border:1px solid rgba(232,160,69,0.3);
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--bebas);font-size:14px;color:var(--cyan);flex-shrink:0;
-  letter-spacing:1px;
+  font-family:var(--sans);font-size:13px;color:var(--accent);flex-shrink:0;font-weight:800;
 }
-.u-name{font-size:10px;color:var(--text);font-weight:600;letter-spacing:0.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.u-sub{font-size:8px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.u-name{font-size:11px;color:var(--text);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.u-sub{font-size:8px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+
+.sb-actions{display:flex;gap:4px;align-items:center;justify-content:space-between;padding:0 4px}
 .so-btn{
-  width:100%;padding:8px;background:none;border:none;
+  padding:6px 8px;background:none;border:none;
   font-family:var(--mono);font-size:8px;letter-spacing:3px;text-transform:uppercase;
-  color:var(--text3);cursor:pointer;transition:color 0.15s;
+  color:var(--text3);cursor:pointer;transition:color 0.15s;border-radius:6px;
 }
-.so-btn:hover{color:var(--red)}
+.so-btn:hover{color:var(--red);background:var(--red-g)}
+.theme-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 10px;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;
+  font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--text2);cursor:pointer;transition:all 0.18s;
+}
+.theme-btn:hover{color:var(--accent);border-color:rgba(232,160,69,0.3)}
+
+/* ── Mobile nav ── */
+.mobile-topbar{
+  display:none;position:fixed;top:0;left:0;right:0;
+  background:var(--bg1);border-bottom:1px solid var(--line);
+  padding:12px 16px;z-index:200;
+  align-items:center;justify-content:space-between;
+}
+.mobile-logo{font-family:var(--display);font-style:italic;font-size:20px;color:var(--white)}
+.mobile-logo span{color:var(--accent)}
+.mobile-menu-btn{
+  background:none;border:1px solid var(--line2);border-radius:8px;
+  padding:7px 10px;cursor:pointer;color:var(--text);
+  display:flex;align-items:center;gap:6px;font-size:10px;font-family:var(--sans);font-weight:700;letter-spacing:1px;text-transform:uppercase;
+}
+.mobile-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:98;
+}
+.mobile-nav-bottom{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:var(--bg1);border-top:1px solid var(--line);
+  padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:200;
+  align-items:center;justify-content:space-around;
+}
+.mnb{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 14px;border:none;background:none;cursor:pointer;
+  color:var(--text3);font-family:var(--sans);font-size:8px;font-weight:700;
+  letter-spacing:0.5px;text-transform:uppercase;border-radius:8px;transition:all 0.15s;
+}
+.mnb svg{opacity:0.5}
+.mnb.on{color:var(--accent)}
+.mnb.on svg{opacity:1;color:var(--accent)}
 
 /* ── Main ── */
-.main{margin-left:210px;flex:1;min-height:100vh}
-.page{padding:44px 52px;max-width:1240px}
-.page-enter{animation:pageIn 0.45s cubic-bezier(0.16,1,0.3,1) both}
+.main{margin-left:var(--sidebar-w);flex:1;min-height:100vh}
+.page{padding:44px 48px;max-width:1200px}
 
 /* ── Page header ── */
 .ph{margin-bottom:44px}
 .ph-ey{
-  font-size:8px;letter-spacing:5px;text-transform:uppercase;color:var(--cyan);
-  margin-bottom:10px;display:flex;align-items:center;gap:10px;
+  font-size:9px;letter-spacing:5px;text-transform:uppercase;color:var(--accent);
+  margin-bottom:10px;display:flex;align-items:center;gap:10px;font-family:var(--mono);
 }
-.ph-ey::before{content:'';width:24px;height:1px;background:var(--cyan);opacity:0.5}
+.ph-ey::before{content:'';width:20px;height:1px;background:var(--accent);opacity:0.5}
 .ph-title{
-  font-family:var(--bebas);font-size:54px;letter-spacing:3px;
-  color:var(--white);line-height:0.95;
+  font-family:var(--display);font-size:52px;font-style:italic;
+  color:var(--white);line-height:0.95;font-weight:400;
 }
-.ph-title em{color:var(--cyan);font-style:normal}
-.ph-sub{font-size:11px;color:var(--text2);margin-top:8px;letter-spacing:0.3px;line-height:1.5}
+.ph-title em{color:var(--accent);font-style:italic}
+.ph-sub{font-size:11px;color:var(--text2);margin-top:8px;letter-spacing:0.3px;line-height:1.5;font-family:var(--sans)}
 
-/* ── Stats ── */
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+/* ── Stats Grid ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
 .sc{
-  background:linear-gradient(145deg,var(--bg2),var(--bg1));
-  border:1px solid var(--line);border-radius:var(--r2);
-  padding:22px 24px;position:relative;overflow:hidden;
-  transition:all 0.25s cubic-bezier(0.16,1,0.3,1);
-  cursor:default;
+  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);
+  padding:20px 22px;position:relative;overflow:hidden;
+  transition:all 0.25s;cursor:default;
 }
-.sc::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  opacity:0;transition:opacity 0.25s;
-}
-.sc:hover{transform:translateY(-3px);border-color:var(--line2);box-shadow:0 16px 40px rgba(0,0,0,0.4)}
-.sc:hover::before{opacity:1}
-.sc.c-cyan::before{background:linear-gradient(90deg,transparent,var(--cyan),transparent);box-shadow:0 0 12px var(--cyan)}
-.sc.c-gold::before{background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-.sc.c-green::before{background:linear-gradient(90deg,transparent,var(--green),transparent)}
-.sc.c-red::before{background:linear-gradient(90deg,transparent,var(--red),transparent)}
-.sc-bg-icon{
-  position:absolute;right:-8px;bottom:-12px;
-  font-family:var(--bebas);font-size:80px;color:rgba(255,255,255,0.015);
-  letter-spacing:2px;pointer-events:none;line-height:1;
-}
-.sc-label{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
-.sc-val{font-family:var(--bebas);font-size:40px;letter-spacing:2px;line-height:1}
-.sc-val.pos{color:var(--green)}
-.sc-val.neg{color:var(--red)}
-.sc-val.cyn{color:var(--cyan)}
-.sc-val.gld{color:var(--gold)}
-.sc-val.wht{color:var(--white)}
-.sc-sub{font-size:9px;color:var(--text3);margin-top:6px;letter-spacing:1px}
+.sc:hover{border-color:var(--line2);box-shadow:0 12px 32px rgba(0,0,0,0.15)}
+.sc-label{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;font-family:var(--mono)}
+.sc-val{font-family:var(--display);font-size:38px;line-height:1;font-style:italic}
+.sc-val.pos{color:var(--green)}.sc-val.neg{color:var(--red)}
+.sc-val.acc{color:var(--accent)}.sc-val.wht{color:var(--white)}
+.sc-val.blu{color:var(--blue)}
+.sc-sub{font-size:9px;color:var(--text3);margin-top:6px;font-family:var(--mono)}
+.sc-stripe{position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);opacity:0}
+.sc:hover .sc-stripe{opacity:1;transition:opacity 0.25s}
+.sc-stripe.green{background:var(--green)}
+.sc-stripe.red{background:var(--red)}
+.sc-stripe.blue{background:var(--blue)}
 
 /* ── Section labels ── */
 .sl{
   font-size:8px;letter-spacing:4px;text-transform:uppercase;color:var(--text3);
-  margin-bottom:14px;display:flex;align-items:center;gap:12px;
+  margin-bottom:14px;display:flex;align-items:center;gap:12px;font-family:var(--mono);
 }
 .sl::after{content:'';flex:1;height:1px;background:var(--line)}
 
 /* ── Equity Curve ── */
 .curve-card{
-  background:linear-gradient(145deg,var(--bg2),var(--bg1));
-  border:1px solid var(--line);border-radius:var(--r2);
-  padding:28px 32px;margin-bottom:28px;
-  box-shadow:0 8px 32px rgba(0,0,0,0.3);
+  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);
+  padding:24px 28px;margin-bottom:24px;
 }
-.curve-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
-.curve-r{font-family:var(--bebas);font-size:44px;letter-spacing:2px;line-height:1}
-.curve-meta{font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:4px}
+.curve-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.curve-r{font-family:var(--display);font-size:40px;line-height:1;font-style:italic}
+.curve-meta{font-size:9px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
 
 /* ── Asset Bars ── */
-.ab-list{display:flex;flex-direction:column;gap:6px;margin-bottom:28px}
+.ab-list{display:flex;flex-direction:column;gap:6px;margin-bottom:24px}
 .ab-row{
-  display:grid;grid-template-columns:140px 1fr 70px 60px;
-  align-items:center;gap:16px;
-  background:linear-gradient(90deg,var(--bg2),var(--bg1));
-  border:1px solid var(--line);border-radius:var(--r);
-  padding:12px 18px;transition:all 0.18s;
+  display:grid;grid-template-columns:130px 1fr 70px 60px;
+  align-items:center;gap:12px;
+  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px 16px;transition:all 0.15s;
 }
-.ab-row:hover{border-color:var(--line2);transform:translateX(3px)}
-.ab-name{font-size:10px;color:var(--text);font-weight:500;letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ab-track{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.ab-row:hover{border-color:var(--line2);background:var(--bg3)}
+.ab-name{font-size:10px;color:var(--text);font-weight:600;font-family:var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ab-track{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
 .ab-fill{height:100%;border-radius:2px;transition:width 0.8s cubic-bezier(0.16,1,0.3,1)}
-.ab-r{font-family:var(--mono);font-size:11px;font-weight:600;text-align:right;letter-spacing:0.5px}
-.ab-wr{font-size:8px;color:var(--text3);text-align:right;letter-spacing:1px}
+.ab-r{font-family:var(--mono);font-size:11px;font-weight:500;text-align:right}
+.ab-wr{font-size:8px;color:var(--text3);text-align:right;font-family:var(--mono)}
 
 /* ── Table ── */
-.tbl-card{
-  background:linear-gradient(145deg,var(--bg2),var(--bg1));
-  border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;
-  box-shadow:0 8px 32px rgba(0,0,0,0.2);
+.tbl-wrap{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden}
+.tbl-wrap table{width:100%;border-collapse:collapse}
+.tbl-wrap thead tr{border-bottom:1px solid var(--line);background:var(--bg3)}
+.tbl-wrap th{
+  padding:12px 14px;font-size:7px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--text3);text-align:left;font-weight:700;font-family:var(--sans);white-space:nowrap;
 }
-.tbl-card table{width:100%;border-collapse:collapse}
-.tbl-card thead tr{border-bottom:1px solid var(--line);background:var(--bg3)}
-.tbl-card th{
-  padding:12px 16px;font-size:7px;letter-spacing:3px;text-transform:uppercase;
-  color:var(--text3);text-align:left;font-weight:600;white-space:nowrap;
-}
-.tbl-card tbody tr{border-bottom:1px solid var(--line);transition:all 0.12s}
-.tbl-card tbody tr:last-child{border-bottom:none}
-.tbl-card tbody tr:hover{background:rgba(0,212,255,0.03)}
-.tbl-card td{padding:12px 16px;font-size:11px;white-space:nowrap}
-.td-date{color:var(--text2);font-size:10px}
-.td-win{color:var(--green);font-weight:600}
-.td-loss{color:var(--red);font-weight:600}
-.td-be{color:var(--gold);font-weight:600}
-.td-note{color:var(--text2);font-style:italic;max-width:200px;overflow:hidden;text-overflow:ellipsis}
-.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:7px;letter-spacing:2px;text-transform:uppercase;font-weight:700}
-.bl{background:var(--green-g);color:var(--green);border:1px solid rgba(52,211,153,0.2)}
-.bb{background:rgba(96,165,250,0.08);color:#60a5fa;border:1px solid rgba(96,165,250,0.2)}
-.empty-st{padding:64px;text-align:center;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--text3)}
+.tbl-wrap tbody tr{border-bottom:1px solid var(--line);transition:all 0.1s}
+.tbl-wrap tbody tr:last-child{border-bottom:none}
+.tbl-wrap tbody tr:hover{background:var(--bg3)}
+.tbl-wrap td{padding:11px 14px;font-size:11px;white-space:nowrap;font-family:var(--sans)}
+.td-date{color:var(--text2);font-size:10px;font-family:var(--mono)}
+.td-win{color:var(--green);font-weight:700}
+.td-loss{color:var(--red);font-weight:700}
+.td-be{color:var(--accent);font-weight:700}
+.td-note{color:var(--text2);font-style:italic;max-width:180px;overflow:hidden;text-overflow:ellipsis;font-family:var(--sans)}
+.badge{display:inline-block;padding:3px 8px;border-radius:5px;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;font-family:var(--mono)}
+.bl{background:var(--green-g);color:var(--green)}
+.bb{background:rgba(109,184,255,0.1);color:var(--blue)}
+.sess-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:8px;letter-spacing:1px;text-transform:uppercase;font-weight:600;font-family:var(--mono);background:var(--accent-g);color:var(--accent)}
+.empty-st{padding:60px;text-align:center;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--text3);font-family:var(--mono)}
+
+/* ── Mobile table cards ── */
+.trade-cards{display:none;flex-direction:column;gap:8px}
+.trade-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:14px 16px}
+.tc-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.tc-main{display:flex;align-items:baseline;gap:8px}
+.tc-asset{font-size:13px;font-weight:700;color:var(--white);font-family:var(--sans)}
+.tc-date{font-size:9px;color:var(--text3);font-family:var(--mono)}
+.tc-r{font-size:18px;font-family:var(--display);font-style:italic}
+.tc-meta{display:flex;gap:6px;flex-wrap:wrap}
+.tc-note{font-size:10px;color:var(--text2);font-style:italic;margin-top:6px;line-height:1.4;font-family:var(--sans)}
 
 /* ── Win Ring ── */
 .ring-wrap{position:relative;flex-shrink:0}
 .ring-wrap svg{transform:rotate(-90deg);display:block}
 .ring-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
-.ring-pct{font-family:var(--bebas);font-size:22px;letter-spacing:1px;color:var(--white);line-height:1}
-.ring-lbl{font-size:7px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+.ring-pct{font-family:var(--display);font-size:22px;font-style:italic;color:var(--white);line-height:1}
+.ring-lbl{font-size:7px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:1px;font-family:var(--mono)}
 
 /* ── Filter Tabs ── */
 .ftabs{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--line);border-radius:30px;padding:3px}
 .ftab{
-  padding:6px 16px;border-radius:24px;font-family:var(--mono);
-  font-size:8px;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+  padding:6px 14px;border-radius:24px;font-family:var(--sans);
+  font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
   cursor:pointer;border:none;background:none;color:var(--text3);
   transition:all 0.18s;
 }
-.ftab.on{background:var(--bg4);color:var(--cyan);box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+.ftab.on{background:var(--bg4);color:var(--accent)}
 
 /* ── Mode Toggle ── */
 .mtoggle{display:flex;gap:6px;margin-bottom:20px}
 .mpill{
-  padding:8px 22px;border-radius:20px;font-family:var(--mono);
-  font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+  padding:8px 20px;border-radius:20px;font-family:var(--sans);
+  font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
   cursor:pointer;border:1px solid var(--line2);background:var(--bg2);color:var(--text3);
   transition:all 0.18s;
 }
-.mpill.ml{background:var(--green-g);border-color:rgba(52,211,153,0.3);color:var(--green);box-shadow:0 0 12px rgba(52,211,153,0.1)}
-.mpill.mb{background:rgba(96,165,250,0.08);border-color:rgba(96,165,250,0.25);color:#60a5fa}
+.mpill.ml{background:var(--green-g);border-color:rgba(74,222,154,0.3);color:var(--green)}
+.mpill.mb{background:rgba(109,184,255,0.08);border-color:rgba(109,184,255,0.25);color:var(--blue)}
 
 /* ── Form Panels ── */
 .fp{
-  background:linear-gradient(145deg,var(--bg2),var(--bg1));
-  border:1px solid var(--line);border-radius:var(--r2);
-  padding:28px 32px;margin-bottom:14px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.2);
+  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);
+  padding:24px 28px;margin-bottom:12px;
 }
 .fp-title{
   font-size:8px;letter-spacing:4px;text-transform:uppercase;
-  color:var(--text2);margin-bottom:20px;padding-bottom:16px;
+  color:var(--text2);margin-bottom:20px;padding-bottom:14px;
   border-bottom:1px solid var(--line);
-  display:flex;align-items:center;gap:10px;
+  display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:600;
 }
-.fp-title::before{content:'';width:12px;height:1px;background:var(--cyan);opacity:0.6}
-.fg2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.fp-title::before{content:'';width:12px;height:1px;background:var(--accent);opacity:0.7}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px}
+
 .commit-btn{
   width:100%;padding:16px;
-  background:linear-gradient(135deg,var(--cyan),var(--cyan-d));
-  border:none;border-radius:var(--r);
-  font-family:var(--mono);font-size:10px;font-weight:700;
-  letter-spacing:4px;text-transform:uppercase;color:#07080f;
+  background:var(--accent);border:none;border-radius:var(--r);
+  font-family:var(--sans);font-size:11px;font-weight:800;
+  letter-spacing:3px;text-transform:uppercase;color:#fff;
   cursor:pointer;transition:all 0.2s;
-  box-shadow:0 4px 20px rgba(0,212,255,0.25);
-  position:relative;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,0.15);
 }
-.commit-btn::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);
-  transform:translateX(-100%);transition:transform 0.5s;
-}
-.commit-btn:hover::before{transform:translateX(100%)}
-.commit-btn:hover{box-shadow:0 6px 28px rgba(0,212,255,0.4);transform:translateY(-1px)}
+.commit-btn:hover{background:var(--accent-d);transform:translateY(-1px);box-shadow:0 6px 28px rgba(0,0,0,0.2)}
 .commit-btn:active{transform:translateY(0)}
 .commit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
 
-/* ── Strategy step in form ── */
+/* ── Strategy steps ── */
 .strat-step{
   background:var(--bg3);border:1px solid var(--line);border-radius:var(--r);
-  padding:18px 20px;margin-bottom:10px;
+  padding:16px 18px;margin-bottom:8px;
   transition:border-color 0.18s,box-shadow 0.18s;
 }
-.strat-step:focus-within{border-color:rgba(0,212,255,0.3);box-shadow:0 0 0 2px rgba(0,212,255,0.05)}
+.strat-step:focus-within{border-color:rgba(232,160,69,0.3);box-shadow:0 0 0 2px var(--accent-g)}
 .step-lbl{
   font-size:8px;letter-spacing:3px;text-transform:uppercase;
-  color:var(--text3);margin-bottom:10px;
-  display:flex;align-items:center;gap:8px;
+  color:var(--text3);margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;font-family:var(--mono);
 }
 .step-num{
   width:18px;height:18px;border-radius:4px;
-  background:var(--cyan-g);border:1px solid rgba(0,212,255,0.2);
+  background:var(--accent-g);border:1px solid rgba(232,160,69,0.2);
   display:flex;align-items:center;justify-content:center;
-  font-size:7px;color:var(--cyan);font-weight:700;
+  font-size:8px;color:var(--accent);font-weight:800;font-family:var(--mono);
 }
 
-/* ── Checkbox field ── */
+/* ── Checkbox ── */
 .ck-field{display:flex;align-items:center;gap:12px;cursor:pointer;padding:4px 0}
 .ck-box{
-  width:22px;height:22px;border-radius:5px;flex-shrink:0;
+  width:22px;height:22px;border-radius:6px;flex-shrink:0;
   border:1.5px solid var(--line2);background:var(--bg4);
   display:flex;align-items:center;justify-content:center;
-  transition:all 0.18s cubic-bezier(0.16,1,0.3,1);
+  transition:all 0.18s;
 }
-.ck-box.on{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px rgba(0,212,255,0.4)}
-.ck-lbl{font-size:12px;color:var(--text);transition:color 0.15s}
+.ck-box.on{background:var(--accent);border-color:var(--accent)}
+.ck-lbl{font-size:12px;color:var(--text);transition:color 0.15s;font-family:var(--sans)}
 .ck-field:hover .ck-lbl{color:var(--white)}
 
 /* ── Multi-select chips ── */
 .ms-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .ms-chip{
-  padding:6px 13px;border-radius:20px;border:1px solid var(--line2);
-  background:var(--bg4);color:var(--text3);
-  font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:1.5px;
-  cursor:pointer;transition:all 0.18s cubic-bezier(0.16,1,0.3,1);
-  user-select:none;
+  padding:6px 12px;border-radius:20px;border:1px solid var(--line2);
+  background:var(--bg3);color:var(--text3);
+  font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:1px;
+  cursor:pointer;transition:all 0.15s;user-select:none;
 }
-.ms-chip:hover{border-color:rgba(0,212,255,0.3);color:var(--text);background:var(--bg3)}
+.ms-chip:hover{border-color:rgba(232,160,69,0.3);color:var(--text)}
 .ms-chip.on{
-  background:var(--cyan-g);border-color:rgba(0,212,255,0.35);
-  color:var(--cyan);box-shadow:0 0 10px rgba(0,212,255,0.1);
+  background:var(--accent-g);border-color:rgba(232,160,69,0.4);
+  color:var(--accent);
 }
 
-/* ── Builder flow ── */
+/* ── Builder ── */
 .builder-shell{
   min-height:100vh;display:flex;align-items:flex-start;justify-content:center;
   position:relative;z-index:1;padding:60px 24px 80px;overflow-y:auto;
+  background:var(--bg);
 }
 .builder-wrap{width:100%;max-width:660px}
-.b-step{
-  font-size:8px;letter-spacing:4px;text-transform:uppercase;color:var(--cyan);
-  margin-bottom:10px;display:flex;align-items:center;gap:8px;
-}
-.b-step::before{content:'';width:20px;height:1px;background:var(--cyan);opacity:0.5}
-.b-title{
-  font-family:var(--serif);font-style:italic;font-weight:300;font-size:40px;
-  color:var(--white);margin-bottom:10px;letter-spacing:-0.5px;line-height:1.1;
-}
-.b-desc{font-size:12px;color:var(--text2);line-height:1.75;margin-bottom:36px}
-
-.strat-name-area{margin-bottom:32px}
-.strat-name-label{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.b-step{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:8px;font-family:var(--mono)}
+.b-step::before{content:'';width:20px;height:1px;background:var(--accent);opacity:0.5}
+.b-title{font-family:var(--display);font-style:italic;font-weight:400;font-size:38px;color:var(--white);margin-bottom:10px;letter-spacing:-0.5px;line-height:1.1}
+.b-desc{font-size:12px;color:var(--text2);line-height:1.75;margin-bottom:32px;font-family:var(--sans)}
+.strat-name-area{margin-bottom:28px}
+.strat-name-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;font-family:var(--mono);font-weight:600}
 .strat-name-input{
-  font-family:var(--serif);font-style:italic;font-size:30px;font-weight:300;
+  font-family:var(--display);font-style:italic;font-size:28px;font-weight:400;
   background:transparent;border:none;border-bottom:1px solid var(--line2);
   border-radius:0;padding:6px 0;color:var(--white);width:100%;outline:none;
-  transition:border-color 0.2s;letter-spacing:-0.3px;
+  transition:border-color 0.2s;
 }
-.strat-name-input:focus{border-bottom-color:var(--cyan)}
+.strat-name-input:focus{border-bottom-color:var(--accent)}
 .strat-name-input::placeholder{color:var(--text3)}
 
-.fl-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.fl-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
 .fl-row{
   display:flex;align-items:center;justify-content:space-between;
-  background:linear-gradient(90deg,var(--bg2),var(--bg1));
-  border:1px solid var(--line);border-radius:var(--r);
-  padding:14px 18px;transition:all 0.15s;
+  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px 16px;transition:all 0.15s;
 }
 .fl-row:hover{border-color:var(--line2)}
-.fl-left{display:flex;align-items:center;gap:14px}
+.fl-left{display:flex;align-items:center;gap:12px}
 .fl-num{
-  width:24px;height:24px;border-radius:5px;
-  background:var(--cyan-g);border:1px solid rgba(0,212,255,0.2);
+  width:24px;height:24px;border-radius:6px;
+  background:var(--accent-g);border:1px solid rgba(232,160,69,0.2);
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--bebas);font-size:12px;color:var(--cyan);flex-shrink:0;letter-spacing:1px;
+  font-family:var(--mono);font-size:11px;color:var(--accent);flex-shrink:0;font-weight:700;
 }
-.fl-name{font-size:12px;color:var(--text);font-weight:500}
-.fl-type{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-top:2px}
+.fl-name{font-size:12px;color:var(--text);font-weight:600;font-family:var(--sans)}
+.fl-type{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-top:2px;font-family:var(--mono)}
 .fl-acts{display:flex;gap:4px}
 .ib{
   background:none;border:none;cursor:pointer;color:var(--text3);
@@ -567,53 +575,107 @@ body::before{
 .ib.del:hover{color:var(--red)}
 
 .add-trig{
-  width:100%;padding:18px;border:1px dashed var(--line2);border-radius:var(--r);
-  background:none;font-family:var(--mono);font-size:9px;letter-spacing:3px;
-  text-transform:uppercase;color:var(--text3);cursor:pointer;
-  transition:all 0.18s;margin-bottom:20px;
+  width:100%;padding:16px;border:1.5px dashed var(--line2);border-radius:var(--r);
+  background:none;font-family:var(--sans);font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--text3);cursor:pointer;font-weight:700;
+  transition:all 0.18s;margin-bottom:16px;
   display:flex;align-items:center;justify-content:center;gap:8px;
 }
-.add-trig:hover{border-color:rgba(0,212,255,0.4);color:var(--cyan);background:var(--cyan-gs)}
+.add-trig:hover{border-color:rgba(232,160,69,0.4);color:var(--accent);background:var(--accent-gs)}
 
 .add-panel{
   background:var(--bg2);border:1px solid var(--line2);
-  border-radius:var(--r2);padding:24px;margin-bottom:16px;
+  border-radius:var(--r2);padding:22px;margin-bottom:14px;
   animation:pageIn 0.25s cubic-bezier(0.16,1,0.3,1);
 }
-.add-panel-title{font-size:8px;letter-spacing:4px;text-transform:uppercase;color:var(--text3);margin-bottom:16px}
-.type-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.add-panel-title{font-size:8px;letter-spacing:4px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;font-family:var(--mono);font-weight:600}
+.type-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
 .type-tab{
-  padding:7px 16px;border-radius:4px;font-family:var(--mono);
-  font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  padding:7px 14px;border-radius:6px;font-family:var(--sans);
+  font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
   cursor:pointer;border:1px solid var(--line2);background:var(--bg3);color:var(--text3);
   transition:all 0.15s;
 }
-.type-tab.on{border-color:rgba(0,212,255,0.4);color:var(--cyan);background:var(--cyan-gs)}
+.type-tab.on{border-color:rgba(232,160,69,0.4);color:var(--accent);background:var(--accent-gs)}
 .opts-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
 .opt-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .ot{
   display:inline-flex;align-items:center;gap:5px;
   padding:4px 10px;background:var(--bg3);border:1px solid var(--line2);
-  border-radius:4px;font-size:9px;color:var(--text2);
+  border-radius:4px;font-size:9px;color:var(--text2);font-family:var(--mono);
 }
 .ot button{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;line-height:1;padding:0;transition:color 0.1s}
 .ot button:hover{color:var(--red)}
 
-/* ── Insight boxes ── */
-.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
-.ins-box{
-  background:linear-gradient(145deg,var(--bg2),var(--bg1));
-  border:1px solid var(--line);border-radius:var(--r2);padding:22px 26px;
-  transition:all 0.2s;
-}
-.ins-box:hover{border-color:var(--line2);transform:translateY(-2px)}
-.ins-label{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
-.ins-val{font-family:var(--bebas);font-size:36px;letter-spacing:2px;line-height:1}
-.ins-sub{font-size:9px;color:var(--text3);margin-top:4px;letter-spacing:0.5px}
+/* ── Insights boxes ── */
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.ins-box{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:20px 24px;transition:all 0.2s}
+.ins-box:hover{border-color:var(--line2)}
+.ins-label{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;font-family:var(--mono)}
+.ins-val{font-family:var(--display);font-size:34px;line-height:1;font-style:italic}
+.ins-sub{font-size:9px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
 
-/* ── Settings field list ── */
+/* ── Smart AI panel ── */
+.ai-panel{
+  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);
+  padding:24px 28px;margin-bottom:24px;position:relative;overflow:hidden;
+}
+.ai-panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--green),var(--accent));
+  background-size:200% 100%;animation:shimmer 3s linear infinite;
+}
+.ai-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.ai-icon{
+  width:32px;height:32px;border-radius:8px;background:var(--accent-g);
+  border:1px solid rgba(232,160,69,0.3);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.ai-title{font-size:12px;font-weight:800;color:var(--white);font-family:var(--sans);letter-spacing:0.5px}
+.ai-sub{font-size:9px;color:var(--text3);font-family:var(--mono)}
+.ai-insights{display:flex;flex-direction:column;gap:10px}
+.ai-item{
+  display:flex;align-items:flex-start;gap:12px;padding:14px 16px;
+  background:var(--bg3);border:1px solid var(--line);border-radius:var(--r);
+}
+.ai-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ai-item-title{font-size:11px;font-weight:700;color:var(--text);font-family:var(--sans);margin-bottom:3px}
+.ai-item-body{font-size:10px;color:var(--text2);line-height:1.5;font-family:var(--sans)}
+
+/* ── Filter Panel ── */
+.filter-bar{
+  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);
+  padding:20px 24px;margin-bottom:24px;
+}
+.filter-title{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--text2);margin-bottom:16px;font-family:var(--mono);font-weight:600;display:flex;align-items:center;gap:8px}
+.filter-title::before{content:'';width:12px;height:1px;background:var(--accent);opacity:0.6}
+.filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.flt-group label{display:block;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;font-family:var(--mono);font-weight:600}
+.flt-group select,.flt-group input{
+  width:100%;background:var(--bg3);border:1px solid var(--line2);border-radius:8px;
+  padding:9px 12px;font-family:var(--mono);font-size:11px;color:var(--text);
+  outline:none;-webkit-appearance:none;appearance:none;
+  transition:border-color 0.2s;
+}
+.flt-group select:focus,.flt-group input:focus{border-color:var(--accent)}
+.filter-actions{display:flex;gap:8px;margin-top:12px;align-items:center}
+.flt-count{font-size:9px;color:var(--text3);font-family:var(--mono)}
+
+/* ── Export button ── */
+.export-area{display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.export-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 16px;border-radius:8px;border:1px solid var(--line2);
+  background:var(--bg2);color:var(--text2);font-family:var(--sans);
+  font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  cursor:pointer;transition:all 0.18s;
+}
+.export-btn:hover{border-color:rgba(232,160,69,0.4);color:var(--accent);background:var(--accent-gs)}
+
+/* ── Settings ── */
 .settings-wrap{max-width:660px}
-.saved-flash{font-size:9px;color:var(--green);letter-spacing:3px;text-transform:uppercase}
+.saved-flash{font-size:9px;color:var(--green);letter-spacing:3px;text-transform:uppercase;font-family:var(--mono)}
+.div{width:100%;height:1px;background:var(--line);margin:24px 0}
 
 /* ── Loader ── */
 .loader-sh{
@@ -622,29 +684,46 @@ body::before{
 }
 .loader-ring{
   width:36px;height:36px;border:2px solid var(--line2);
-  border-top-color:var(--cyan);border-radius:50%;
+  border-top-color:var(--accent);border-radius:50%;
   animation:spin 0.8s linear infinite;
 }
-.loader-txt{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--text3)}
+.loader-txt{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--text3);font-family:var(--mono)}
 
 /* ── Progress bar ── */
-.prog-bar{height:2px;background:var(--line);border-radius:1px;margin-bottom:36px;overflow:hidden}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--cyan-d));border-radius:1px;transition:width 0.4s cubic-bezier(0.16,1,0.3,1)}
+.prog-bar{height:2px;background:var(--line);border-radius:1px;margin-bottom:32px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:1px;transition:width 0.4s cubic-bezier(0.16,1,0.3,1)}
 
-/* ── Divider ── */
-.div{width:100%;height:1px;background:var(--line);margin:24px 0}
-
-@media(max-width:960px){
-  .sidebar{width:58px}
-  .sb-logo,.nb span,.u-name,.u-sub,.so-btn,.sb-sync,.sb-user .avatar+div{display:none}
-  .user-tile{justify-content:center}
-  .nb{justify-content:center}
-  .nb.on::before{display:none}
-  .main{margin-left:58px}
-  .page{padding:24px 20px}
-  .stat-grid{grid-template-columns:1fr 1fr}
+/* ── Responsive ── */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .mobile-topbar{display:flex}
+  .mobile-overlay.open{display:block}
+  .mobile-nav-bottom{display:flex}
+  .main{margin-left:0;padding-top:60px;padding-bottom:70px}
+  .page{padding:20px 16px 32px}
+  .ph{margin-bottom:24px}
+  .ph-title{font-size:38px}
+  .stat-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .sc{padding:16px 18px}
+  .sc-val{font-size:30px}
   .ins-grid{grid-template-columns:1fr}
-  .fg3{grid-template-columns:1fr 1fr}
+  .fg2,.fg3,.fg4{grid-template-columns:1fr 1fr}
+  .tbl-wrap table{display:none}
+  .trade-cards{display:flex}
+  .ab-row{grid-template-columns:100px 1fr 60px 50px;padding:10px 12px;gap:8px}
+  .curve-card{padding:18px 20px}
+  .auth-card-body{padding:28px 24px}
+  .brand-mark{font-size:52px}
+  .filter-grid{grid-template-columns:1fr 1fr}
+  .export-area{gap:6px}
+  .ai-panel{padding:18px 20px}
+}
+@media(max-width:480px){
+  .fg2,.fg3,.fg4{grid-template-columns:1fr}
+  .filter-grid{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .ftabs{display:none}
 }
 `;
 
@@ -659,8 +738,7 @@ function AnimNum({ val, dec=1, prefix='', suffix='' }) {
   const ref = useRef(null);
   useEffect(() => {
     const target = parseFloat(val) || 0;
-    let start=null;
-    const dur=800;
+    let start=null; const dur=800;
     const tick = ts => {
       if(!start) start=ts;
       const p = Math.min((ts-start)/dur,1);
@@ -676,15 +754,22 @@ function AnimNum({ val, dec=1, prefix='', suffix='' }) {
 
 // ─── Icons ──────────────────────────────────────────────────────────────────
 const I = {
-  Grid:  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>,
-  Book:  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
-  Plus:  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-  Chart: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>,
-  Cog:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
-  Trash: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"/></svg>,
-  Up:    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18,15 12,9 6,15"/></svg>,
-  Down:  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6,9 12,15 18,9"/></svg>,
-  Chk:   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#07080f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12"/></svg>,
+  Grid:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>,
+  Book:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+  Plus:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  Chart:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>,
+  Brain:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>,
+  Cog:     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  Trash:   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"/></svg>,
+  Up:      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18,15 12,9 6,15"/></svg>,
+  Down:    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6,9 12,15 18,9"/></svg>,
+  Chk:     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12"/></svg>,
+  Sun:     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+  Moon:    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
+  Download:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+  Filter:  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"/></svg>,
+  Menu:    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+  X:       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
 };
 
 // ─── WinRateRing ─────────────────────────────────────────────────────────────
@@ -697,7 +782,7 @@ function WinRateRing({ pct, size=90 }) {
         <circle cx="40" cy="40" r={r} fill="none" stroke="var(--bg4)" strokeWidth="5"/>
         <circle cx="40" cy="40" r={r} fill="none" stroke={col} strokeWidth="5"
           strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"
-          style={{transition:'stroke-dasharray 1s cubic-bezier(0.16,1,0.3,1)',filter:`drop-shadow(0 0 4px ${col})`}}
+          style={{transition:'stroke-dasharray 1s cubic-bezier(0.16,1,0.3,1)'}}
         />
       </svg>
       <div className="ring-center">
@@ -744,20 +829,14 @@ function EquityCurve({ trades }) {
             <stop offset="0%" stopColor={col} stopOpacity="0.25"/>
             <stop offset="100%" stopColor={col} stopOpacity="0"/>
           </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
         </defs>
         <line x1={pad} y1={zeroY} x2={W-pad} y2={zeroY} stroke="var(--line2)" strokeWidth="1" strokeDasharray="4,4"/>
         <path d={area} fill="url(#egr)"/>
-        <path d={path} fill="none" stroke={col} strokeWidth="1.8" filter="url(#glow)"
+        <path d={path} fill="none" stroke={col} strokeWidth="2"
           strokeDasharray={pathLen} strokeDashoffset={pathLen}
           style={{animation:'drawLine 1.5s 0.3s cubic-bezier(0.16,1,0.3,1) forwards',['--len']:pathLen}}
         />
-        <circle cx={xs[xs.length-1]} cy={ys[ys.length-1]} r="4" fill={col}
-          style={{filter:`drop-shadow(0 0 6px ${col})`}}
-        />
+        <circle cx={xs[xs.length-1]} cy={ys[ys.length-1]} r="4" fill={col}/>
       </svg>
     </div>
   );
@@ -785,11 +864,7 @@ function AssetBars({ trades }) {
           <div key={asset} className="ab-row page-enter" style={{animationDelay:`${0.04*i}s`}}>
             <div className="ab-name">{asset}</div>
             <div className="ab-track">
-              <div className="ab-fill" style={{
-                width:`${(Math.abs(s.r)/mx)*100}%`,
-                background:s.r>=0?'var(--green)':'var(--red)',
-                boxShadow:s.r>=0?'0 0 6px rgba(52,211,153,0.5)':'none'
-              }}/>
+              <div className="ab-fill" style={{width:`${(Math.abs(s.r)/mx)*100}%`,background:s.r>=0?'var(--green)':'var(--red)'}}/>
             </div>
             <div className={`ab-r ${s.r>=0?'td-win':'td-loss'}`}>{rSign(s.r)}</div>
             <div className="ab-wr">{s.n>0?((s.w/s.n)*100).toFixed(0):0}% WR</div>
@@ -800,7 +875,7 @@ function AssetBars({ trades }) {
   );
 }
 
-// ─── StrategyFieldInput ───────────────────────────────────────────────────────
+// ─── Strategy Field Input ─────────────────────────────────────────────────────
 function SFI({ field, value, onChange }) {
   if(field.type==='checkbox'){
     const on=value===true||value==='true';
@@ -822,10 +897,7 @@ function SFI({ field, value, onChange }) {
         <div className="f" style={{marginBottom:4}}><label>{field.name}</label></div>
         <div className="ms-wrap">
           {(field.options||[]).map(opt=>(
-            <button key={opt} type="button"
-              className={`ms-chip ${selected.includes(opt)?'on':''}`}
-              onClick={()=>toggle(opt)}
-            >{opt}</button>
+            <button key={opt} type="button" className={`ms-chip ${selected.includes(opt)?'on':''}`} onClick={()=>toggle(opt)}>{opt}</button>
           ))}
         </div>
       </div>
@@ -850,12 +922,128 @@ function SFI({ field, value, onChange }) {
   );
 }
 
-// ─── Main App ─────────────────────────────────────────────────────────────────
+// ─── Export to CSV ────────────────────────────────────────────────────────────
+function exportCSV(trades, mode='all', fields=[]) {
+  const rows = trades.filter(t=>mode==='all'||t.mode===mode);
+  const stratHeaders = fields.map(f=>f.name);
+  const headers = ['Date','Mode','Asset','Session','Outcome','Result (R)','Notes',...stratHeaders];
+  const lines = [headers.join(',')];
+  rows.forEach(t=>{
+    const stratVals = fields.map(f=>{
+      const v=t.strategyData?.[f.id];
+      if(f.type==='checkbox') return v?'Yes':'No';
+      if(Array.isArray(v)) return `"${v.join(', ')}"`;
+      return `"${(v||'').toString().replace(/"/g,'""')}"`;
+    });
+    const row = [
+      t.date||'',
+      t.mode||'',
+      `"${(t.asset||'').replace(/"/g,'""')}"`,
+      t.session||'No Session',
+      t.outcome||'',
+      t.resultR||0,
+      `"${(t.notes||'').replace(/"/g,'""')}"`,
+      ...stratVals
+    ];
+    lines.push(row.join(','));
+  });
+  const blob = new Blob([lines.join('\n')],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`pip-by-pip-${mode}-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// ─── Smart Insights Engine ────────────────────────────────────────────────────
+function buildSmartInsights(trades) {
+  const closed = trades.filter(t=>t.outcome!=='No Trade');
+  if(closed.length<3) return [{type:'info',title:'Keep logging trades',body:'Log at least 3 trades to unlock your personal smart summary.'}];
+  
+  const insights = [];
+  const wins = closed.filter(t=>t.outcome==='Win');
+  const losses = closed.filter(t=>t.outcome==='Loss');
+  const wr = wins.length/closed.length;
+  const netR = closed.reduce((s,t)=>s+parseFloat(t.resultR||0),0);
+  
+  // Win rate insight
+  if(wr>=0.6) insights.push({type:'strength',title:`Strong win rate at ${(wr*100).toFixed(0)}%`,body:'You are winning more than 6 out of 10 trades — that is consistency. Keep executing your rules.'});
+  else if(wr<=0.4) insights.push({type:'weakness',title:`Win rate is ${(wr*100).toFixed(0)}% — focus on quality`,body:'Fewer than 4 in 10 trades close as wins. Consider waiting for higher-conviction setups only.'});
+  else insights.push({type:'neutral',title:`Win rate at ${(wr*100).toFixed(0)}%`,body:'Solid middle-ground. Track whether you are holding winners long enough — average R matters more than win rate alone.'});
+  
+  // Best asset
+  const assetMap={};
+  closed.forEach(t=>{
+    if(!t.asset) return;
+    if(!assetMap[t.asset]) assetMap[t.asset]={r:0,n:0,w:0};
+    assetMap[t.asset].r+=parseFloat(t.resultR||0);
+    assetMap[t.asset].n++;
+    if(t.outcome==='Win') assetMap[t.asset].w++;
+  });
+  const byR=Object.entries(assetMap).sort((a,b)=>b[1].r-a[1].r);
+  if(byR.length>0){
+    const [bestAsset,best]=byR[0];
+    const [worstAsset,worst]=byR[byR.length-1];
+    insights.push({type:'strength',title:`${bestAsset} is your strongest pair`,body:`Net ${rSign(best.r)} across ${best.n} trades — ${best.n?((best.w/best.n)*100).toFixed(0):0}% WR. This is where your edge lives.`});
+    if(byR.length>1&&worst.r<0) insights.push({type:'weakness',title:`${worstAsset} is costing you pips`,body:`Net ${rSign(worst.r)} on this pair. Consider limiting or pausing it until you understand the pattern.`});
+  }
+  
+  // Best session
+  const sessMap={};
+  closed.forEach(t=>{
+    const s=t.session||'No Session';
+    if(!sessMap[s]) sessMap[s]={r:0,n:0,w:0};
+    sessMap[s].r+=parseFloat(t.resultR||0);
+    sessMap[s].n++;
+    if(t.outcome==='Win') sessMap[s].w++;
+  });
+  const hasSessions=Object.keys(sessMap).some(k=>k!=='No Session'&&sessMap[k].n>0);
+  if(hasSessions){
+    const bySession=Object.entries(sessMap).filter(([k])=>k!=='No Session').sort((a,b)=>b[1].r-a[1].r);
+    if(bySession.length>0){
+      const [bestSess,bS]=bySession[0];
+      insights.push({type:'strength',title:`${bestSess} session is your sweet spot`,body:`Your best results come from the ${bestSess} session with net ${rSign(bS.r)} across ${bS.n} trades. Prioritise this window.`});
+      if(bySession.length>1){
+        const [worstSess,wS]=bySession[bySession.length-1];
+        if(wS.r<0) insights.push({type:'weakness',title:`${worstSess} session is draining your account`,body:`Net ${rSign(wS.r)} during this window. You may be overtrading or not respecting session-specific conditions.`});
+      }
+    }
+  }
+  
+  // Day of week
+  const dayMap={};
+  closed.forEach(t=>{
+    if(!t.date) return;
+    const d=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(t.date+'T12:00:00').getDay()];
+    if(!dayMap[d]) dayMap[d]={r:0,n:0};
+    dayMap[d].r+=parseFloat(t.resultR||0); dayMap[d].n++;
+  });
+  const weekdays=['Mon','Tue','Wed','Thu','Fri'].filter(d=>dayMap[d]);
+  if(weekdays.length>2){
+    const sorted=weekdays.sort((a,b)=>dayMap[b].r-dayMap[a].r);
+    const best=sorted[0],worst=sorted[sorted.length-1];
+    if(dayMap[worst].r<0&&worst!==best) insights.push({type:'neutral',title:`Worst day: ${worst}`,body:`You have lost ${rSign(dayMap[worst].r)} net on ${worst}s. Consider taking it off or being more selective that day.`});
+  }
+  
+  // Profitability summary
+  if(netR>0) insights.push({type:'strength',title:'You are net profitable — keep the discipline',body:`Total net R is ${rSign(netR)} across ${closed.length} trades. Protect your capital and let the edge compound.`});
+  else insights.push({type:'weakness',title:'Still in the red — stay patient',body:`Net R is ${rSign(netR)}. Focus on risk management first: make sure every loss is exactly 1R, never more.`});
+  
+  return insights;
+}
+
+// ─── App Shell ───────────────────────────────────────────────────────────────
 export default function App() {
   const [authUser,setAuthUser]=useState(undefined);
   const [profile,setProfile]=useState(null);
   const [trades,setTrades]=useState([]);
   const [view,setView]=useState('dashboard');
+  const [theme,setTheme]=useState(()=>localStorage.getItem('pbp-theme')||'dark');
+  const [menuOpen,setMenuOpen]=useState(false);
+
+  useEffect(()=>{
+    document.documentElement.setAttribute('data-theme',theme);
+    localStorage.setItem('pbp-theme',theme);
+  },[theme]);
 
   useEffect(()=>{
     let m=true;
@@ -872,9 +1060,7 @@ export default function App() {
 
   useEffect(()=>{
     if(!authUser){setProfile(null);return}
-    getDoc(userDoc(authUser.uid)).then(s=>{
-      setProfile(s.exists()?s.data():null);
-    });
+    getDoc(userDoc(authUser.uid)).then(s=>{setProfile(s.exists()?s.data():null)});
   },[authUser]);
 
   useEffect(()=>{
@@ -889,26 +1075,15 @@ export default function App() {
     setView('journal');
   };
   const delTrade=async id=>deleteDoc(tradeDoc(id));
-  const savePro=async p=>{
-    await setDoc(userDoc(authUser.uid),p,{merge:true});
-    setProfile(p);
-  };
+  const savePro=async p=>{await setDoc(userDoc(authUser.uid),p,{merge:true});setProfile(p)};
   const handleSignOut=async()=>{await signOut(auth);setProfile(null)};
+  const navigate=(v)=>{setView(v);setMenuOpen(false)};
 
   if(authUser===undefined) return (
-    <>
-      <style>{S}</style>
-      <div className="ambient"><div className="ambient-blob blob1"/><div className="ambient-blob blob2"/><div className="ambient-blob blob3"/></div>
-      <div className="loader-sh"><div className="loader-ring"/><div className="loader-txt">Loading</div></div>
-    </>
+    <><style>{S}</style><div className="loader-sh"><div className="loader-ring"/><div className="loader-txt">Loading</div></div></>
   );
-
   if(!authUser||!profile) return (
-    <>
-      <style>{S}</style>
-      <div className="ambient"><div className="ambient-blob blob1"/><div className="ambient-blob blob2"/><div className="ambient-blob blob3"/></div>
-      <AuthFlow onComplete={p=>{setProfile(p)}}/>
-    </>
+    <><style>{S}</style><AuthFlow onComplete={p=>setProfile(p)}/></>
   );
 
   const fields=profile.strategy?.fields||[];
@@ -916,42 +1091,75 @@ export default function App() {
     {id:'dashboard',label:'Overview',icon:I.Grid},
     {id:'journal',label:'Journal',icon:I.Book},
     {id:'add',label:'Log Trade',icon:I.Plus},
-    {id:'insights',label:'Insights',icon:I.Chart},
+    {id:'insights',label:'Insights',icon:I.Brain},
     {id:'settings',label:'Strategy',icon:I.Cog},
   ];
 
   return (
     <>
       <style>{S}</style>
-      <div className="ambient"><div className="ambient-blob blob1"/><div className="ambient-blob blob2"/><div className="ambient-blob blob3"/></div>
+      {/* Mobile top bar */}
+      <div className="mobile-topbar">
+        <div className="mobile-logo">Pip <span>by</span> Pip</div>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} style={{padding:'6px 10px',border:'1px solid var(--line2)',borderRadius:8,background:'var(--bg2)',cursor:'pointer',display:'flex',alignItems:'center',gap:4,color:'var(--text2)',fontSize:10,fontFamily:'var(--mono)',letterSpacing:1,textTransform:'uppercase'}}>
+            {theme==='dark'?I.Sun:I.Moon}
+          </button>
+          <button className="mobile-menu-btn" onClick={()=>setMenuOpen(o=>!o)}>
+            {menuOpen?I.X:I.Menu}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile overlay */}
+      <div className={`mobile-overlay ${menuOpen?'open':''}`} onClick={()=>setMenuOpen(false)}/>
+
       <div className="shell">
-        <nav className="sidebar">
+        <nav className={`sidebar ${menuOpen?'open':''}`}>
           <div className="sb-top">
-            <div className="sb-logo">PIP <span>BY</span> PIP</div>
-            <div className="sb-sync"><span className="sync-dot"/>Live Sync</div>
+            <div className="sb-brand">
+              <div className="sb-logo">Pip <span>by</span> Pip</div>
+              <div className="sb-ver">Trade Journal</div>
+            </div>
+            <div className="sb-sync"><span className="sync-dot"/>Live</div>
           </div>
           <div className="nav">
             {NAV.map(n=>(
-              <button key={n.id} className={`nb ${view===n.id?'on':''}`} onClick={()=>setView(n.id)}>
+              <button key={n.id} className={`nb ${view===n.id?'on':''}`} onClick={()=>navigate(n.id)}>
                 {n.icon}<span>{n.label}</span>
               </button>
             ))}
           </div>
-          <div className="sb-user">
-            <div className="user-tile" onClick={()=>setView('settings')}>
+          <div className="sb-bottom">
+            <div className="user-tile" onClick={()=>navigate('settings')}>
               <div className="avatar">{(profile.username||'?')[0].toUpperCase()}</div>
-              <div><div className="u-name">{profile.username}</div><div className="u-sub">{profile.strategy?.name||'—'}</div></div>
+              <div><div className="u-name">{profile.username}</div><div className="u-sub">{profile.strategy?.name||'No strategy'}</div></div>
             </div>
-            <button className="so-btn" onClick={handleSignOut}>Sign out</button>
+            <div className="sb-actions">
+              <button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>
+                {theme==='dark'?<>{I.Sun} Light</>:<>{I.Moon} Dark</>}
+              </button>
+              <button className="so-btn" onClick={handleSignOut}>Sign out</button>
+            </div>
           </div>
         </nav>
+
         <main className="main">
           {view==='dashboard'&&<DashboardPage key="dash" trades={trades} profile={profile}/>}
           {view==='journal'  &&<JournalPage   key="jrnl" trades={trades} fields={fields} onDelete={delTrade}/>}
           {view==='add'      &&<AddTradePage  key="add"  profile={profile} onAdd={addTrade}/>}
-          {view==='insights' &&<InsightsPage  key="ins"  trades={trades}/>}
+          {view==='insights' &&<InsightsPage  key="ins"  trades={trades} fields={fields}/>}
           {view==='settings' &&<SettingsPage  key="set"  profile={profile} onSave={savePro}/>}
         </main>
+      </div>
+
+      {/* Mobile bottom nav */}
+      <div className="mobile-nav-bottom">
+        {NAV.map(n=>(
+          <button key={n.id} className={`mnb ${view===n.id?'on':''}`} onClick={()=>navigate(n.id)}>
+            {n.icon}<span>{n.label}</span>
+          </button>
+        ))}
       </div>
     </>
   );
@@ -968,73 +1176,55 @@ function AuthFlow({onComplete}) {
   const [fields,setFields]=useState([]);
   const [adding,setAdding]=useState(false);
   const [nf,setNf]=useState({name:'',type:'dropdown',options:[],optIn:''});
+  const typeLabel={dropdown:'Dropdown',text:'Free Text',checkbox:'Tick',multiselect:'Multi-Select'};
 
   const doLogin=async e=>{
     e.preventDefault();setErr('');setLoading(true);
     try{
-      const c=await signInWithEmailAndPassword(auth,toEmail(form.username),form.password);
-      const s=await getDoc(userDoc(c.user.uid));
-      if(s.exists()) onComplete(s.data());
-      else setErr('Account found but profile is missing.');
-    }catch(ex){
-      const msg={
-        'auth/user-not-found':'No account with that username.',
-        'auth/invalid-credential':'Incorrect username or password.',
-        'auth/wrong-password':'Incorrect password.',
-        'auth/invalid-email':'Invalid username format.'
-      }[ex.code]||'Sign-in failed. Check your details.';
-      setErr(msg);
-    }
-    setLoading(false);
+      const u=await signInWithEmailAndPassword(auth,toEmail(form.username),form.password);
+      const snap=await getDoc(userDoc(u.user.uid));
+      if(snap.exists()) onComplete(snap.data());
+      else setErr('Account not found.');
+    }catch(e){setErr('Invalid username or password.')} finally{setLoading(false)};
   };
-
   const doRegister=async e=>{
     e.preventDefault();setErr('');
+    if(form.password!==form.confirm){setErr('Passwords do not match.');return}
     if(form.password.length<6){setErr('Password must be at least 6 characters.');return}
-    if(form.password!==form.confirm){setErr("Passwords don't match.");return}
     setLoading(true);
     try{
-      const c=await createUserWithEmailAndPassword(auth,toEmail(form.username),form.password);
-      setNewUser(c.user);setStep('build');
-    }catch(ex){
-      if(ex.code==='auth/email-already-in-use') setErr('Username taken. Try logging in.');
-      else setErr('Registration failed: '+ex.message);
-    }
-    setLoading(false);
+      const u=await createUserWithEmailAndPassword(auth,toEmail(form.username),form.password);
+      setNewUser(u.user);setStep('build');
+    }catch(e){
+      if(e.code==='auth/email-already-in-use') setErr('Username taken. Try another.');
+      else setErr('Could not create account. Try again.');
+    } finally{setLoading(false)};
   };
-
-  const doFinish=async()=>{
-    if(!stratName.trim()){setErr('Name your strategy.');return}
-    if(!fields.length){setErr('Add at least one step.');return}
-    setLoading(true);
-    const p={uid:newUser.uid,username:form.username,strategy:{name:stratName,fields},createdAt:Date.now()};
-    await setDoc(userDoc(newUser.uid),p);
-    onComplete(p);
-    setLoading(false);
-  };
-
   const addField=()=>{
     if(!nf.name.trim()) return;
     if((nf.type==='dropdown'||nf.type==='multiselect')&&!nf.options.length) return;
-    setFields([...fields,{id:genId(),name:nf.name,type:nf.type,options:nf.options}]);
-    setNf({name:'',type:'dropdown',options:[],optIn:''});
-    setAdding(false);
+    setFields(f=>[...f,{id:genId(),name:nf.name,type:nf.type,options:nf.options}]);
+    setNf({name:'',type:'dropdown',options:[],optIn:''});setAdding(false);
   };
-  const rmField=id=>setFields(fields.filter(f=>f.id!==id));
-  const mvField=(i,d)=>{const a=[...fields];const t=i+d;if(t<0||t>=a.length)return;[a[i],a[t]]=[a[t],a[i]];setFields(a)};
-
-  const typeLabel={dropdown:'Dropdown',text:'Free Text',checkbox:'Tick (Yes/No)',multiselect:'Multi-Select'};
+  const rmField=id=>setFields(f=>f.filter(x=>x.id!==id));
+  const mvField=(i,d)=>setFields(f=>{const a=[...f];const t=i+d;if(t<0||t>=a.length)return a;[a[i],a[t]]=[a[t],a[i]];return a});
+  const doFinish=async()=>{
+    setLoading(true);
+    const p={username:form.username,strategy:{name:stratName,fields},createdAt:Date.now()};
+    await setDoc(userDoc(newUser.uid),p);
+    onComplete(p);setLoading(false);
+  };
 
   if(step!=='build') return (
     <div className="auth-shell">
-      <div className="auth-glow"/>
+      <div className="auth-bg"/>
       <div className="auth-wrap">
         <div className="auth-brand">
-          <div className="brand-title">PIP BY PIP</div>
-          <div className="brand-sub">Trading Journal & Backtester</div>
+          <div className="brand-title">Your Trading Journal</div>
+          <div className="brand-mark">Pip by Pip</div>
+          <div className="brand-sub">Data-driven trading growth</div>
         </div>
         <div className="auth-card">
-          <div className="auth-card-shine"/>
           <div className="auth-card-body">
             <div className="auth-eyebrow">{step==='register'?'Create Account':'Sign In'}</div>
             <div className="auth-heading">{step==='register'?'Start your journal':'Welcome back, trader'}</div>
@@ -1045,16 +1235,15 @@ function AuthFlow({onComplete}) {
             </div>
             {err&&<div className="auth-err">{err}</div>}
             <form onSubmit={step==='register'?doRegister:doLogin}>
-              <div className="f s0"><label>Username</label>
+              <div className="f"><label>Username</label>
                 <input type="text" required value={form.username} autoComplete="username"
-                  onChange={e=>setForm({...form,username:e.target.value})}
-                  placeholder="e.g. sadik_yakasai"/>
+                  onChange={e=>setForm({...form,username:e.target.value})} placeholder="e.g. sadik_trader"/>
               </div>
-              <div className="f s1"><label>Password</label>
+              <div className="f"><label>Password</label>
                 <input type="password" required value={form.password} autoComplete={step==='register'?'new-password':'current-password'}
                   onChange={e=>setForm({...form,password:e.target.value})} placeholder="••••••••"/>
               </div>
-              {step==='register'&&<div className="f s2"><label>Confirm Password</label>
+              {step==='register'&&<div className="f"><label>Confirm Password</label>
                 <input type="password" required value={form.confirm} autoComplete="new-password"
                   onChange={e=>setForm({...form,confirm:e.target.value})} placeholder="••••••••"/>
               </div>}
@@ -1076,15 +1265,13 @@ function AuthFlow({onComplete}) {
   return (
     <div className="builder-shell">
       <div className="builder-wrap">
-        <div className="auth-brand" style={{textAlign:'left',marginBottom:32}}>
-          <div className="brand-title" style={{fontSize:40}}>PIP BY PIP</div>
+        <div style={{marginBottom:32}}>
+          <div className="brand-mark" style={{fontSize:32}}>Pip by Pip</div>
         </div>
         <div className="prog-bar"><div className="prog-fill" style={{width:'66%'}}/></div>
         <div className="b-step">Step 2 of 2 — Your Strategy</div>
         <div className="b-title">Build your<br/>trading checklist</div>
-        <div className="b-desc">
-          Every trade you log will be guided by these steps — your personal system, your rules. Define each decision point: whether it's a bias, a pattern, a confirmation. Each step becomes a field in your trade log.
-        </div>
+        <div className="b-desc">Define each step in your trading process. These become the fields you fill in every time you log a trade.</div>
         {err&&<div className="auth-err">{err}</div>}
         <div className="strat-name-area">
           <div className="strat-name-label">What do you call your strategy?</div>
@@ -1093,7 +1280,7 @@ function AuthFlow({onComplete}) {
         {!!fields.length&&(
           <div className="fl-list">
             {fields.map((f,i)=>(
-              <div key={f.id} className="fl-row page-enter">
+              <div key={f.id} className="fl-row">
                 <div className="fl-left">
                   <div className="fl-num">{i+1}</div>
                   <div>
@@ -1112,25 +1299,16 @@ function AuthFlow({onComplete}) {
         )}
         {adding?(
           <div className="add-panel">
-            <div className="add-panel-title">New Step</div>
+            <div className="add-panel-title">New Strategy Step</div>
             <div className="f"><label>Name / Question</label>
-              <input type="text" value={nf.name} autoFocus onChange={e=>setNf({...nf,name:e.target.value})}
-                placeholder="e.g. HTF Bias? / Clear BOS? / Which liquidity target?"/>
+              <input type="text" value={nf.name} autoFocus onChange={e=>setNf({...nf,name:e.target.value})} placeholder="e.g. HTF Bias? / Clear BOS? / Liquidity Target…"/>
             </div>
-            <div style={{marginBottom:18}}>
-              <div className="f" style={{marginBottom:10}}><label>Answer Type</label></div>
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:8,letterSpacing:3,textTransform:'uppercase',color:'var(--text2)',marginBottom:8,fontFamily:'var(--mono)',fontWeight:600}}>Answer Type</div>
               <div className="type-tabs">
                 {['dropdown','multiselect','text','checkbox'].map(t=>(
-                  <button key={t} className={`type-tab ${nf.type===t?'on':''}`} onClick={()=>setNf({...nf,type:t})}>
-                    {typeLabel[t]}
-                  </button>
+                  <button key={t} className={`type-tab ${nf.type===t?'on':''}`} onClick={()=>setNf({...nf,type:t})}>{typeLabel[t]}</button>
                 ))}
-              </div>
-              <div style={{fontSize:9,color:'var(--text3)',letterSpacing:1,marginTop:6,lineHeight:1.6}}>
-                {nf.type==='dropdown'&&'Choose one option from a list you define.'}
-                {nf.type==='multiselect'&&'Select multiple options at once — great for POIs, confluences, or anything where more than one answer applies.'}
-                {nf.type==='text'&&'Write a free-form answer each time you log a trade.'}
-                {nf.type==='checkbox'&&'A single tick — condition met, or it isn\'t. Clean and simple.'}
               </div>
             </div>
             {(nf.type==='dropdown'||nf.type==='multiselect')&&(
@@ -1150,20 +1328,18 @@ function AuthFlow({onComplete}) {
                 ))}</div>}
               </div>
             )}
-            <div style={{display:'flex',gap:8,marginTop:4}}>
-              <button className="btn btn-primary" onClick={addField}>Add Step</button>
+            <div style={{display:'flex',gap:8}}>
+              <button className="btn btn-primary" onClick={addField}>Save Step</button>
               <button className="btn btn-ghost" onClick={()=>{setAdding(false);setNf({name:'',type:'dropdown',options:[],optIn:''})}}>Cancel</button>
             </div>
           </div>
         ):(
           <button className="add-trig" onClick={()=>setAdding(true)}>{I.Plus} Add a strategy step</button>
         )}
-        <button className="commit-btn" onClick={doFinish} disabled={loading} style={{borderRadius:8}}>
-          {loading?'Saving…':"I'm done — Open my journal"}
+        <button className="commit-btn" onClick={doFinish} disabled={loading}>
+          {loading?'Saving…':"I'm done — Open my journal →"}
         </button>
-        <p style={{fontSize:9,color:'var(--text3)',textAlign:'center',marginTop:12,letterSpacing:1}}>
-          You can always edit or add steps later in Strategy settings.
-        </p>
+        <p style={{fontSize:9,color:'var(--text3)',textAlign:'center',marginTop:12,letterSpacing:1,fontFamily:'var(--mono)'}}>You can always edit steps later in Strategy settings.</p>
       </div>
     </div>
   );
@@ -1194,7 +1370,7 @@ function DashboardPage({trades,profile}) {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:16}}>
           <div>
             <div className="ph-title">Good session,<br/><em>{profile.username}</em></div>
-            <div className="ph-sub">{profile.strategy?.name||'No strategy'} · {stats.total} trades logged</div>
+            <div className="ph-sub">{profile.strategy?.name||'No strategy set'} · {stats.total} trades logged</div>
           </div>
           <div className="ftabs">
             {[['all','All'],['Live','Live'],['Backtest','Backtest']].map(([v,l])=>(
@@ -1203,20 +1379,20 @@ function DashboardPage({trades,profile}) {
           </div>
         </div>
       </div>
-      <div style={{display:'flex',gap:20,alignItems:'flex-start',marginBottom:28}}>
-        <div className="page-enter s0"><WinRateRing pct={stats.wr} size={96}/></div>
-        <div className="stat-grid" style={{flex:1}}>
+      <div style={{display:'flex',gap:16,alignItems:'flex-start',marginBottom:24,flexWrap:'wrap'}}>
+        <div className="page-enter s0"><WinRateRing pct={stats.wr} size={90}/></div>
+        <div className="stat-grid" style={{flex:1,minWidth:0}}>
           {[
-            {label:'Net R',val:<AnimNum val={stats.r} dec={2} prefix={stats.r>=0?'+':''} suffix="R"/>,cls:stats.r>0?'pos':stats.r<0?'neg':'wht',c:'c-gold',bg:'NET R'},
-            {label:'Avg R/Trade',val:<AnimNum val={stats.avg} dec={2} prefix={stats.avg>=0?'+':''} suffix="R"/>,cls:stats.avg>0?'pos':stats.avg<0?'neg':'wht',c:'c-green',bg:'AVG'},
-            {label:'Trades',val:<AnimNum val={stats.valid} dec={0}/>,cls:'cyn',c:'c-cyan',bg:'TOTAL'},
-            {label:'Win Streak',val:<AnimNum val={stats.streak} dec={0}/>,cls:'gld',c:'c-gold',bg:'STREAK'},
+            {label:'Net R',val:<AnimNum val={stats.r} dec={2} prefix={stats.r>=0?'+':''} suffix="R"/>,cls:stats.r>0?'pos':stats.r<0?'neg':'wht',stripe:'',sub:'Risk-multiple'},
+            {label:'Avg R/Trade',val:<AnimNum val={stats.avg} dec={2} prefix={stats.avg>=0?'+':''} suffix="R"/>,cls:stats.avg>0?'pos':stats.avg<0?'neg':'wht',stripe:'green',sub:'Expectancy'},
+            {label:'Total Trades',val:<AnimNum val={stats.valid} dec={0}/>,cls:'acc',stripe:'',sub:`${stats.total-stats.valid} skipped`},
+            {label:'Win Streak',val:<AnimNum val={stats.streak} dec={0}/>,cls:'blu',stripe:'blue',sub:'Current run'},
           ].map((x,i)=>(
-            <div key={i} className={`sc ${x.c} page-enter s${i+1}`}>
+            <div key={i} className={`sc page-enter s${i+1}`}>
+              <div className={`sc-stripe ${x.stripe}`}/>
               <div className="sc-label">{x.label}</div>
               <div className={`sc-val ${x.cls}`}>{x.val}</div>
-              <div className="sc-sub">{i===2?`${stats.total-stats.valid} skipped`:i===3?'Current run':i===0?'Risk-multiple':'Expectancy'}</div>
-              <div className="sc-bg-icon">{x.bg}</div>
+              <div className="sc-sub">{x.sub}</div>
             </div>
           ))}
         </div>
@@ -1224,32 +1400,54 @@ function DashboardPage({trades,profile}) {
       <EquityCurve trades={filtered}/>
       <AssetBars trades={filtered}/>
       <div className="sl">Recent Entries</div>
-      <div className="tbl-card page-enter s3">
-        {!recent.length?<div className="empty-st">No trades yet. Start logging.</div>:
-          <table>
-            <thead><tr>
-              <th>Date</th><th>Mode</th><th>Asset</th>
-              {fields.slice(0,3).map(f=><th key={f.id}>{f.name}</th>)}
-              <th>Outcome</th><th>R</th>
-            </tr></thead>
-            <tbody>
+      <div className="tbl-wrap page-enter s3">
+        {!recent.length?<div className="empty-st">No trades yet. Start logging.</div>:(
+          <>
+            <table>
+              <thead><tr>
+                <th>Date</th><th>Mode</th><th>Asset</th><th>Session</th>
+                {fields.slice(0,2).map(f=><th key={f.id}>{f.name}</th>)}
+                <th>Outcome</th><th>R</th>
+              </tr></thead>
+              <tbody>
+                {recent.map(t=>(
+                  <tr key={t.id}>
+                    <td className="td-date">{fmtD(t.date)}</td>
+                    <td><span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span></td>
+                    <td style={{color:'var(--text)',fontWeight:600}}>{t.asset||'—'}</td>
+                    <td>{t.session&&t.session!=='No Session'?<span className="sess-badge">{t.session}</span>:<span style={{color:'var(--text3)',fontSize:10}}>—</span>}</td>
+                    {fields.slice(0,2).map(f=>{
+                      const v=t.strategyData?.[f.id];
+                      const d=f.type==='checkbox'?(v?'✓':'—'):Array.isArray(v)?v.join(', '):(v||'—');
+                      return <td key={f.id} style={{color:'var(--text2)',maxWidth:110,overflow:'hidden',textOverflow:'ellipsis'}}>{d}</td>;
+                    })}
+                    <td className={t.outcome==='Win'?'td-win':t.outcome==='Loss'?'td-loss':'td-be'}>{t.outcome}</td>
+                    <td className={rClass(t.resultR)} style={{fontFamily:'var(--mono)',fontWeight:600}}>{rSign(t.resultR)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* Mobile cards */}
+            <div className="trade-cards" style={{padding:'12px'}}>
               {recent.map(t=>(
-                <tr key={t.id}>
-                  <td className="td-date">{fmtD(t.date)}</td>
-                  <td><span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span></td>
-                  <td style={{color:'var(--text)'}}>{t.asset||'—'}</td>
-                  {fields.slice(0,3).map(f=>{
-                    const v=t.strategyData?.[f.id];
-                    const d=f.type==='checkbox'?(v?'✓':'—'):Array.isArray(v)?v.join(', '):(v||'—');
-                    return <td key={f.id} style={{color:'var(--text2)',maxWidth:120,overflow:'hidden',textOverflow:'ellipsis'}}>{d}</td>;
-                  })}
-                  <td className={t.outcome==='Win'?'td-win':t.outcome==='Loss'?'td-loss':'td-be'}>{t.outcome}</td>
-                  <td className={rClass(t.resultR)} style={{fontWeight:600}}>{rSign(t.resultR)}</td>
-                </tr>
+                <div className="trade-card" key={t.id}>
+                  <div className="tc-row">
+                    <div className="tc-main">
+                      <div className="tc-asset">{t.asset||'—'}</div>
+                      <div className="tc-date">{fmtD(t.date)}</div>
+                    </div>
+                    <div className={`tc-r ${rClass(t.resultR)}`}>{rSign(t.resultR)}</div>
+                  </div>
+                  <div className="tc-meta">
+                    <span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span>
+                    {t.session&&t.session!=='No Session'&&<span className="sess-badge">{t.session}</span>}
+                    <span className={`badge ${t.outcome==='Win'?'bl':t.outcome==='Loss'?'':'bb'}`} style={t.outcome==='Loss'?{background:'var(--red-g)',color:'var(--red)'}:{}}>{t.outcome}</span>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-        }
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -1260,56 +1458,94 @@ function JournalPage({trades,fields,onDelete}) {
   const [scope,setScope]=useState('all');
   const [conf,setConf]=useState(null);
   const sorted=[...trades].filter(t=>scope==='all'||t.mode===scope).sort((a,b)=>new Date(b.date)-new Date(a.date));
+
   return (
     <div className="page page-enter">
       <div className="ph">
         <div className="ph-ey">Journal</div>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:16}}>
           <div><div className="ph-title">All Trades</div><div className="ph-sub">{sorted.length} entries</div></div>
-          <div className="ftabs">
-            {[['all','All'],['Live','Live'],['Backtest','Backtest']].map(([v,l])=>(
-              <button key={v} className={`ftab ${scope===v?'on':''}`} onClick={()=>setScope(v)}>{l}</button>
-            ))}
+          <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+            <div className="ftabs">
+              {[['all','All'],['Live','Live'],['Backtest','Backtest']].map(([v,l])=>(
+                <button key={v} className={`ftab ${scope===v?'on':''}`} onClick={()=>setScope(v)}>{l}</button>
+              ))}
+            </div>
+            <button className="export-btn" onClick={()=>exportCSV(sorted,'all',fields)}>
+              {I.Download} Export CSV
+            </button>
           </div>
         </div>
       </div>
-      <div className="tbl-card">
-        {!sorted.length?<div className="empty-st">No trades to show.</div>:
-          <table>
-            <thead><tr>
-              <th>Date</th><th>Mode</th><th>Asset</th>
-              {fields.map(f=><th key={f.id}>{f.name}</th>)}
-              <th>Outcome</th><th>R</th><th>Notes</th><th></th>
-            </tr></thead>
-            <tbody>
+      <div className="tbl-wrap">
+        {!sorted.length?<div className="empty-st">No trades to show.</div>:(
+          <>
+            <table>
+              <thead><tr>
+                <th>Date</th><th>Mode</th><th>Asset</th><th>Session</th>
+                {fields.map(f=><th key={f.id}>{f.name}</th>)}
+                <th>Outcome</th><th>R</th><th>Notes</th><th></th>
+              </tr></thead>
+              <tbody>
+                {sorted.map(t=>(
+                  <tr key={t.id}>
+                    <td className="td-date">{fmtD(t.date)}</td>
+                    <td><span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span></td>
+                    <td style={{color:'var(--text)',fontWeight:600}}>{t.asset||'—'}</td>
+                    <td>{t.session&&t.session!=='No Session'?<span className="sess-badge">{t.session}</span>:<span style={{color:'var(--text3)',fontSize:10}}>—</span>}</td>
+                    {fields.map(f=>{
+                      const v=t.strategyData?.[f.id];
+                      const d=f.type==='checkbox'?(v?'✓':'✗'):Array.isArray(v)?v.join(', '):(v||'—');
+                      return <td key={f.id} style={{color:'var(--text2)',maxWidth:120,overflow:'hidden',textOverflow:'ellipsis'}}>{d}</td>;
+                    })}
+                    <td className={t.outcome==='Win'?'td-win':t.outcome==='Loss'?'td-loss':'td-be'}>{t.outcome}</td>
+                    <td className={rClass(t.resultR)} style={{fontFamily:'var(--mono)',fontWeight:600}}>{rSign(t.resultR)}</td>
+                    <td className="td-note">{t.notes||'—'}</td>
+                    <td>
+                      {conf===t.id?(
+                        <span style={{display:'flex',gap:4}}>
+                          <button className="btn btn-danger btn-sm" onClick={()=>{onDelete(t.id);setConf(null)}}>Delete</button>
+                          <button className="btn btn-ghost btn-sm" onClick={()=>setConf(null)}>No</button>
+                        </span>
+                      ):(
+                        <button className="ib del" onClick={()=>setConf(t.id)} style={{padding:6}}>{I.Trash}</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* Mobile cards */}
+            <div className="trade-cards" style={{padding:'12px'}}>
               {sorted.map(t=>(
-                <tr key={t.id}>
-                  <td className="td-date">{fmtD(t.date)}</td>
-                  <td><span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span></td>
-                  <td style={{color:'var(--text)'}}>{t.asset||'—'}</td>
-                  {fields.map(f=>{
-                    const v=t.strategyData?.[f.id];
-                    const d=f.type==='checkbox'?(v?'✓':'✗'):Array.isArray(v)?v.join(', '):(v||'—');
-                    return <td key={f.id} style={{color:'var(--text2)',maxWidth:130,overflow:'hidden',textOverflow:'ellipsis'}}>{d}</td>;
-                  })}
-                  <td className={t.outcome==='Win'?'td-win':t.outcome==='Loss'?'td-loss':'td-be'}>{t.outcome}</td>
-                  <td className={rClass(t.resultR)} style={{fontWeight:600}}>{rSign(t.resultR)}</td>
-                  <td className="td-note">{t.notes||'—'}</td>
-                  <td>
-                    {conf===t.id?(
-                      <span style={{display:'flex',gap:4}}>
-                        <button className="btn btn-danger btn-sm" onClick={()=>{onDelete(t.id);setConf(null)}}>Delete</button>
-                        <button className="btn btn-ghost btn-sm" onClick={()=>setConf(null)}>No</button>
-                      </span>
-                    ):(
-                      <button className="ib del" onClick={()=>setConf(t.id)} style={{padding:6}}>{I.Trash}</button>
-                    )}
-                  </td>
-                </tr>
+                <div className="trade-card" key={t.id}>
+                  <div className="tc-row">
+                    <div className="tc-main">
+                      <div className="tc-asset">{t.asset||'—'}</div>
+                      <div className="tc-date">{fmtD(t.date)}</div>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:8}}>
+                      <div className={`tc-r ${rClass(t.resultR)}`}>{rSign(t.resultR)}</div>
+                      <button className="ib del" onClick={()=>setConf(conf===t.id?null:t.id)}>{I.Trash}</button>
+                    </div>
+                  </div>
+                  {conf===t.id&&(
+                    <div style={{display:'flex',gap:6,marginBottom:8}}>
+                      <button className="btn btn-danger btn-sm" onClick={()=>{onDelete(t.id);setConf(null)}}>Confirm Delete</button>
+                      <button className="btn btn-ghost btn-sm" onClick={()=>setConf(null)}>Cancel</button>
+                    </div>
+                  )}
+                  <div className="tc-meta">
+                    <span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span>
+                    {t.session&&t.session!=='No Session'&&<span className="sess-badge">{t.session}</span>}
+                    <span className={`badge ${t.outcome==='Win'?'bl':t.outcome==='Loss'?'':'bb'}`} style={t.outcome==='Loss'?{background:'var(--red-g)',color:'var(--red)'}:{}}>{t.outcome}</span>
+                  </div>
+                  {t.notes&&<div className="tc-note">{t.notes}</div>}
+                </div>
               ))}
-            </tbody>
-          </table>
-        }
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -1319,13 +1555,14 @@ function JournalPage({trades,fields,onDelete}) {
 function AddTradePage({profile,onAdd}) {
   const fields=profile.strategy?.fields||[];
   const [mode,setMode]=useState('Live');
+  const [session,setSession]=useState('No Session');
   const [base,setBase]=useState({date:new Date().toISOString().split('T')[0],asset:'',resultR:'',outcome:'Win',notes:''});
   const [sdata,setSdata]=useState({});
   const [saving,setSaving]=useState(false);
 
   const submit=async e=>{
     e.preventDefault();setSaving(true);
-    await onAdd({...base,strategyData:sdata,mode,strategyName:profile.strategy?.name});
+    await onAdd({...base,strategyData:sdata,mode,session,strategyName:profile.strategy?.name});
     setSaving(false);
   };
 
@@ -1343,14 +1580,19 @@ function AddTradePage({profile,onAdd}) {
         </div>
       </div>
       <form onSubmit={submit} style={{maxWidth:820}}>
-        <div className="fp s0">
+        <div className="fp page-enter s0">
           <div className="fp-title">Core Data</div>
-          <div className="fg3">
+          <div className="fg4">
             <div className="f" style={{margin:0}}><label>Date</label><input type="date" value={base.date} onChange={e=>setBase({...base,date:e.target.value})} required/></div>
             <div className="f" style={{margin:0}}><label>Asset</label>
               <select value={base.asset} onChange={e=>setBase({...base,asset:e.target.value})} required>
                 <option value="">— select —</option>
                 {ASSETS.map(a=><option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            <div className="f" style={{margin:0}}><label>Session</label>
+              <select value={session} onChange={e=>setSession(e.target.value)}>
+                {SESSIONS.map(s=><option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div className="f" style={{margin:0}}><label>Outcome</label>
@@ -1359,7 +1601,7 @@ function AddTradePage({profile,onAdd}) {
               </select>
             </div>
           </div>
-          <div style={{marginTop:18,maxWidth:220}}>
+          <div style={{marginTop:16,maxWidth:200}}>
             <div className="f" style={{margin:0}}><label>Result (R)</label>
               <input type="number" step="0.01" value={base.resultR} onChange={e=>setBase({...base,resultR:e.target.value})}
                 placeholder="e.g. 2.5 or -1" required/>
@@ -1367,7 +1609,7 @@ function AddTradePage({profile,onAdd}) {
           </div>
         </div>
         {!!fields.length&&(
-          <div className="fp s1">
+          <div className="fp page-enter s1">
             <div className="fp-title">Strategy Checklist — {profile.strategy?.name}</div>
             {fields.map((f,i)=>(
               <div key={f.id} className="strat-step">
@@ -1377,15 +1619,15 @@ function AddTradePage({profile,onAdd}) {
             ))}
           </div>
         )}
-        <div className="fp s2">
+        <div className="fp page-enter s2">
           <div className="fp-title">Post-Trade Notes</div>
           <div className="f" style={{margin:0}}>
             <textarea value={base.notes} onChange={e=>setBase({...base,notes:e.target.value})}
               placeholder="What went well? What would you change? Any market observations…"/>
           </div>
         </div>
-        <button type="submit" className="commit-btn" disabled={saving} style={{marginTop:4}}>
-          {saving?'Committing…':'Commit to Journal'}
+        <button type="submit" className="commit-btn" disabled={saving}>
+          {saving?'Committing…':'Commit to Journal →'}
         </button>
       </form>
     </div>
@@ -1393,9 +1635,22 @@ function AddTradePage({profile,onAdd}) {
 }
 
 // ─── Insights ────────────────────────────────────────────────────────────────
-function InsightsPage({trades}) {
+function InsightsPage({trades, fields}) {
   const [scope,setScope]=useState('all');
-  const filtered=scope==='all'?trades:trades.filter(t=>t.mode===scope);
+  const [filters,setFilters]=useState({asset:'',session:'',outcome:'',dateFrom:'',dateTo:''});
+  const [showFilters,setShowFilters]=useState(false);
+
+  const scoped = scope==='all'?trades:trades.filter(t=>t.mode===scope);
+  const filtered = useMemo(()=>{
+    let r=scoped;
+    if(filters.asset) r=r.filter(t=>t.asset===filters.asset);
+    if(filters.session) r=r.filter(t=>(t.session||'No Session')===filters.session);
+    if(filters.outcome) r=r.filter(t=>t.outcome===filters.outcome);
+    if(filters.dateFrom) r=r.filter(t=>t.date>=filters.dateFrom);
+    if(filters.dateTo) r=r.filter(t=>t.date<=filters.dateTo);
+    return r;
+  },[scoped,filters]);
+
   const stats=useMemo(()=>{
     const v=filtered.filter(t=>t.outcome!=='No Trade');
     const w=v.filter(t=>t.outcome==='Win');
@@ -1415,27 +1670,97 @@ function InsightsPage({trades}) {
       if(!days[d]) days[d]={r:0,n:0};
       days[d].r+=parseFloat(t.resultR||0); days[d].n++;
     });
-    return {aw,al,pf,dd,days};
+    // Session stats
+    const sessions={};
+    v.forEach(t=>{
+      const s=t.session||'No Session';
+      if(!sessions[s]) sessions[s]={r:0,n:0,w:0};
+      sessions[s].r+=parseFloat(t.resultR||0); sessions[s].n++;
+      if(t.outcome==='Win') sessions[s].w++;
+    });
+    return {aw,al,pf,dd,days,sessions};
   },[filtered]);
+
+  const smartInsights=useMemo(()=>buildSmartInsights(filtered),[filtered]);
   const dayMx=Math.max(...Object.values(stats.days).map(d=>Math.abs(d.r)),0.01);
+  const allAssets=[...new Set(trades.map(t=>t.asset).filter(Boolean))];
+  const sessUsed=[...new Set(trades.map(t=>t.session||'No Session'))];
+  const hasActiveFilter=Object.values(filters).some(v=>v);
+
+  const iconColor = {strength:'var(--green)',weakness:'var(--red)',neutral:'var(--accent)',info:'var(--blue)'};
+
   return (
     <div className="page page-enter">
       <div className="ph">
         <div className="ph-ey">Deep Insights</div>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:16}}>
-          <div><div className="ph-title">Numbers<br/><em style={{color:'var(--cyan)'}}>Don't Lie</em></div></div>
-          <div className="ftabs">
-            {[['all','All'],['Live','Live'],['Backtest','Backtest']].map(([v,l])=>(
-              <button key={v} className={`ftab ${scope===v?'on':''}`} onClick={()=>setScope(v)}>{l}</button>
-            ))}
+          <div><div className="ph-title">Numbers<br/><em>Don't Lie</em></div></div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+            <div className="ftabs">
+              {[['all','All'],['Live','Live'],['Backtest','Backtest']].map(([v,l])=>(
+                <button key={v} className={`ftab ${scope===v?'on':''}`} onClick={()=>setScope(v)}>{l}</button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Export */}
+      <div className="export-area">
+        <button className="export-btn" onClick={()=>exportCSV(trades,'all',fields)}>{I.Download} All Trades</button>
+        <button className="export-btn" onClick={()=>exportCSV(trades,'Live',fields)}>{I.Download} Live Only</button>
+        <button className="export-btn" onClick={()=>exportCSV(trades,'Backtest',fields)}>{I.Download} Backtest Only</button>
+        <button className="export-btn" onClick={()=>setShowFilters(f=>!f)} style={hasActiveFilter?{borderColor:'rgba(232,160,69,0.5)',color:'var(--accent)'}:{}}>{I.Filter} {showFilters?'Hide Filters':'Filter & Analyse'}{hasActiveFilter&&' •'}</button>
+      </div>
+
+      {/* Filter Bar */}
+      {showFilters&&(
+        <div className="filter-bar page-enter">
+          <div className="filter-title">Filter Trades</div>
+          <div className="filter-grid">
+            <div className="flt-group">
+              <label>Asset / Pair</label>
+              <select value={filters.asset} onChange={e=>setFilters({...filters,asset:e.target.value})}>
+                <option value="">All pairs</option>
+                {allAssets.map(a=><option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            <div className="flt-group">
+              <label>Session</label>
+              <select value={filters.session} onChange={e=>setFilters({...filters,session:e.target.value})}>
+                <option value="">All sessions</option>
+                {SESSIONS.map(s=><option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="flt-group">
+              <label>Outcome</label>
+              <select value={filters.outcome} onChange={e=>setFilters({...filters,outcome:e.target.value})}>
+                <option value="">All outcomes</option>
+                {['Win','Loss','Breakeven','No Trade'].map(o=><option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+            <div className="flt-group">
+              <label>Date From</label>
+              <input type="date" value={filters.dateFrom} onChange={e=>setFilters({...filters,dateFrom:e.target.value})}/>
+            </div>
+            <div className="flt-group">
+              <label>Date To</label>
+              <input type="date" value={filters.dateTo} onChange={e=>setFilters({...filters,dateTo:e.target.value})}/>
+            </div>
+          </div>
+          <div className="filter-actions">
+            <span className="flt-count">{filtered.length} trade{filtered.length!==1?'s':''} match</span>
+            {hasActiveFilter&&<button className="btn btn-ghost btn-sm" onClick={()=>setFilters({asset:'',session:'',outcome:'',dateFrom:'',dateTo:''})}>Clear filters</button>}
+          </div>
+        </div>
+      )}
+
+      {/* Stats */}
       <div className="ins-grid">
         {[
           {label:'Avg Winner',val:<AnimNum val={stats.aw} dec={2} prefix="+R "/>,color:'var(--green)',sub:'Per winning trade'},
           {label:'Avg Loser', val:<AnimNum val={stats.al} dec={2} prefix="-R "/>,color:'var(--red)',sub:'Per losing trade'},
-          {label:'Profit Factor',val:<AnimNum val={stats.pf} dec={2}/>,color:stats.pf>=1.5?'var(--green)':stats.pf>=1?'var(--gold)':'var(--red)',sub:'>1.5 is strong'},
+          {label:'Profit Factor',val:<AnimNum val={stats.pf} dec={2}/>,color:stats.pf>=1.5?'var(--green)':stats.pf>=1?'var(--accent)':'var(--red)',sub:'>1.5 is strong'},
           {label:'Max Drawdown',val:<AnimNum val={stats.dd} dec={2} prefix="-R "/>,color:'var(--red)',sub:'Peak to trough'},
         ].map((x,i)=>(
           <div key={i} className="ins-box page-enter" style={{animationDelay:`${i*0.06}s`}}>
@@ -1445,8 +1770,55 @@ function InsightsPage({trades}) {
           </div>
         ))}
       </div>
+
+      {/* Smart Insights */}
+      <div className="ai-panel page-enter s1">
+        <div className="ai-header">
+          <div className="ai-icon">🧠</div>
+          <div>
+            <div className="ai-title">Your Smart Performance Summary</div>
+            <div className="ai-sub">Powered by your own trade data · {filtered.filter(t=>t.outcome!=='No Trade').length} trades analysed</div>
+          </div>
+        </div>
+        <div className="ai-insights">
+          {smartInsights.map((item,i)=>(
+            <div key={i} className="ai-item">
+              <div className="ai-dot" style={{background:iconColor[item.type]||'var(--accent)'}}/>
+              <div>
+                <div className="ai-item-title">{item.title}</div>
+                <div className="ai-item-body">{item.body}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <EquityCurve trades={filtered}/>
       <AssetBars trades={filtered}/>
+
+      {/* Session performance */}
+      {Object.keys(stats.sessions).some(k=>k!=='No Session'&&stats.sessions[k].n>0)&&(
+        <>
+          <div className="sl">Performance by Session</div>
+          <div className="ab-list">
+            {Object.entries(stats.sessions).filter(([k])=>k!=='No Session').sort((a,b)=>b[1].r-a[1].r).map(([sess,s])=>{
+              const mx=Math.max(...Object.values(stats.sessions).map(x=>Math.abs(x.r)),0.01);
+              return (
+                <div key={sess} className="ab-row">
+                  <div className="ab-name">{sess}</div>
+                  <div className="ab-track">
+                    <div className="ab-fill" style={{width:`${(Math.abs(s.r)/mx)*100}%`,background:s.r>=0?'var(--green)':'var(--red)'}}/>
+                  </div>
+                  <div className={`ab-r ${s.r>=0?'td-win':'td-loss'}`}>{rSign(s.r)}</div>
+                  <div className="ab-wr">{s.n>0?((s.w/s.n)*100).toFixed(0):0}% WR</div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* Day of week */}
       {!!Object.keys(stats.days).length&&(
         <>
           <div className="sl">Performance by Day of Week</div>
@@ -1460,10 +1832,59 @@ function InsightsPage({trades}) {
                     <div className="ab-fill" style={{width:`${(Math.abs(s.r)/dayMx)*100}%`,background:s.r>=0?'var(--green)':'var(--red)'}}/>
                   </div>
                   <div className={`ab-r ${s.r>=0?'td-win':'td-loss'}`}>{rSign(s.r)}</div>
-                  <div className="ab-wr">{s.n} trades</div>
+                  <div className="ab-wr">{s.n} trade{s.n!==1?'s':''}</div>
                 </div>
               );
             })}
+          </div>
+        </>
+      )}
+
+      {/* Filtered trade list */}
+      {showFilters&&(
+        <>
+          <div className="sl">Filtered Trades</div>
+          <div className="tbl-wrap">
+            {!filtered.length?<div className="empty-st">No trades match your filters.</div>:(
+              <>
+                <table>
+                  <thead><tr>
+                    <th>Date</th><th>Mode</th><th>Asset</th><th>Session</th><th>Outcome</th><th>R</th><th>Notes</th>
+                  </tr></thead>
+                  <tbody>
+                    {[...filtered].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t=>(
+                      <tr key={t.id}>
+                        <td className="td-date">{fmtD(t.date)}</td>
+                        <td><span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span></td>
+                        <td style={{color:'var(--text)',fontWeight:600}}>{t.asset||'—'}</td>
+                        <td>{t.session&&t.session!=='No Session'?<span className="sess-badge">{t.session}</span>:<span style={{color:'var(--text3)',fontSize:10}}>—</span>}</td>
+                        <td className={t.outcome==='Win'?'td-win':t.outcome==='Loss'?'td-loss':'td-be'}>{t.outcome}</td>
+                        <td className={rClass(t.resultR)} style={{fontFamily:'var(--mono)',fontWeight:600}}>{rSign(t.resultR)}</td>
+                        <td className="td-note">{t.notes||'—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="trade-cards" style={{padding:'12px'}}>
+                  {[...filtered].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t=>(
+                    <div className="trade-card" key={t.id}>
+                      <div className="tc-row">
+                        <div className="tc-main">
+                          <div className="tc-asset">{t.asset||'—'}</div>
+                          <div className="tc-date">{fmtD(t.date)}</div>
+                        </div>
+                        <div className={`tc-r ${rClass(t.resultR)}`}>{rSign(t.resultR)}</div>
+                      </div>
+                      <div className="tc-meta">
+                        <span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span>
+                        {t.session&&t.session!=='No Session'&&<span className="sess-badge">{t.session}</span>}
+                        <span className={`badge ${t.outcome==='Win'?'bl':''}`} style={t.outcome==='Loss'?{background:'var(--red-g)',color:'var(--red)'}:{}}>{t.outcome}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </>
       )}
@@ -1528,8 +1949,8 @@ function SettingsPage({profile,onSave}) {
             <div className="f"><label>Name</label>
               <input type="text" value={nf.name} autoFocus onChange={e=>setNf({...nf,name:e.target.value})} placeholder="e.g. HTF Bias, Liquidity Target…"/>
             </div>
-            <div style={{marginBottom:18}}>
-              <div style={{fontSize:8,letterSpacing:3,textTransform:'uppercase',color:'var(--text2)',marginBottom:8}}>Answer Type</div>
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:8,letterSpacing:3,textTransform:'uppercase',color:'var(--text2)',marginBottom:8,fontFamily:'var(--mono)',fontWeight:600}}>Answer Type</div>
               <div className="type-tabs">
                 {['dropdown','multiselect','text','checkbox'].map(t=>(
                   <button key={t} className={`type-tab ${nf.type===t?'on':''}`} onClick={()=>setNf({...nf,type:t})}>{typeLabel[t]}</button>
@@ -1562,10 +1983,10 @@ function SettingsPage({profile,onSave}) {
           <button className="add-trig" onClick={()=>setAdding(true)}>{I.Plus} Add a step</button>
         )}
         <div className="div"/>
-        <div style={{background:'var(--bg2)',border:'1px solid var(--line)',borderRadius:8,padding:'22px 26px'}}>
-          <div style={{fontSize:8,letterSpacing:3,textTransform:'uppercase',color:'var(--text3)',marginBottom:8}}>Account</div>
-          <div style={{fontSize:14,color:'var(--text)',marginBottom:4,fontWeight:500}}>@{profile.username}</div>
-          <div style={{fontSize:9,color:'var(--text3)',letterSpacing:1}}>
+        <div style={{background:'var(--bg2)',border:'1px solid var(--line)',borderRadius:10,padding:'20px 24px'}}>
+          <div style={{fontSize:8,letterSpacing:3,textTransform:'uppercase',color:'var(--text3)',marginBottom:8,fontFamily:'var(--mono)',fontWeight:600}}>Account</div>
+          <div style={{fontSize:14,color:'var(--text)',marginBottom:4,fontWeight:700,fontFamily:'var(--sans)'}}>@{profile.username}</div>
+          <div style={{fontSize:9,color:'var(--text3)',fontFamily:'var(--mono)'}}>
             Member since {profile.createdAt?new Date(profile.createdAt).toLocaleDateString('en-GB',{month:'long',year:'numeric'}):'—'}
           </div>
         </div>
