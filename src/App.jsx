@@ -5,7 +5,7 @@ import {
   onAuthStateChanged, signOut
 } from 'firebase/auth';
 import {
-  getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc
+  getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc, getDocs
 } from 'firebase/firestore';
 
 const FB = {
@@ -24,6 +24,7 @@ const toEmail = u => `${u.toLowerCase().replace(/[^a-z0-9]/g,'_')}@pipbypip.app`
 const tradesCol = () => collection(db,'artifacts',APP_ID,'public','data','trades');
 const tradeDoc = id => doc(db,'artifacts',APP_ID,'public','data','trades',id);
 const userDoc = uid => doc(db,'artifacts',APP_ID,'public','data','users',uid);
+const usersCol = () => collection(db,'artifacts',APP_ID,'public','data','users');
 const genId = () => Math.random().toString(36).slice(2,9);
 
 const ASSETS = [
@@ -98,112 +99,51 @@ const S = `
 
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden;transition:background 0.3s,color 0.3s;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 
-/* ── Scrollbar ── */
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
 
-/* ── Animations ── */
 @keyframes pageIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes drawLine{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
 @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes expandIn{from{opacity:0;transform:scaleY(0.95);transform-origin:top}to{opacity:1;transform:scaleY(1)}}
 
 .page-enter{animation:pageIn 0.4s cubic-bezier(0.16,1,0.3,1) both}
 .s0{animation-delay:0ms}.s1{animation-delay:60ms}.s2{animation-delay:120ms}.s3{animation-delay:180ms}.s4{animation-delay:240ms}.s5{animation-delay:300ms}
 
 /* ── Auth ── */
-.auth-shell{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
-  position:relative;padding:24px;
-  background:var(--bg);
-}
-.auth-bg{
-  position:fixed;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 80% 60% at 20% 40%,rgba(232,160,69,0.06) 0%,transparent 70%),
-             radial-gradient(ellipse 60% 50% at 80% 70%,rgba(74,222,154,0.04) 0%,transparent 70%);
-}
-[data-theme="light"] .auth-bg{
-  background:radial-gradient(ellipse 80% 60% at 20% 40%,rgba(196,118,26,0.08) 0%,transparent 70%),
-             radial-gradient(ellipse 60% 50% at 80% 70%,rgba(26,158,96,0.05) 0%,transparent 70%);
-}
+.auth-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;padding:24px;background:var(--bg)}
+.auth-bg{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 60% at 20% 40%,rgba(232,160,69,0.06) 0%,transparent 70%),radial-gradient(ellipse 60% 50% at 80% 70%,rgba(74,222,154,0.04) 0%,transparent 70%)}
+[data-theme="light"] .auth-bg{background:radial-gradient(ellipse 80% 60% at 20% 40%,rgba(196,118,26,0.08) 0%,transparent 70%),radial-gradient(ellipse 60% 50% at 80% 70%,rgba(26,158,96,0.05) 0%,transparent 70%)}
 .auth-wrap{width:100%;max-width:420px;position:relative;z-index:1}
 .auth-brand{text-align:center;margin-bottom:44px}
-.brand-title{
-  font-family:var(--sans);font-size:13px;letter-spacing:6px;text-transform:uppercase;
-  color:var(--accent);font-weight:700;margin-bottom:10px;
-}
-.brand-mark{
-  font-family:var(--display);font-size:58px;
-  color:var(--white);line-height:1.05;
-  font-style:italic;font-weight:600;letter-spacing:-0.5px;
-}
-.brand-sub{
-  font-size:11px;letter-spacing:3px;text-transform:uppercase;
-  color:var(--text2);margin-top:14px;font-family:var(--mono);
-}
-.auth-card{
-  background:var(--bg2);
-  border:1px solid var(--line2);border-radius:18px;
-  overflow:hidden;position:relative;
-  box-shadow:0 24px 80px rgba(0,0,0,0.25);
-}
+.brand-title{font-family:var(--sans);font-size:13px;letter-spacing:6px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:10px}
+.brand-mark{font-family:var(--display);font-size:58px;color:var(--white);line-height:1.05;font-style:italic;font-weight:600;letter-spacing:-0.5px}
+.brand-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--text2);margin-top:14px;font-family:var(--mono)}
+.auth-card{background:var(--bg2);border:1px solid var(--line2);border-radius:18px;overflow:hidden;position:relative;box-shadow:0 24px 80px rgba(0,0,0,0.25)}
 .auth-card-body{padding:38px 42px}
-.auth-eyebrow{
-  font-size:10px;letter-spacing:3px;text-transform:uppercase;
-  color:var(--accent);margin-bottom:8px;font-family:var(--mono);font-weight:500;
-}
-.auth-heading{
-  font-family:var(--display);font-style:italic;font-size:30px;
-  color:var(--white);margin-bottom:10px;font-weight:600;line-height:1.2;
-}
+.auth-eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;font-family:var(--mono);font-weight:500}
+.auth-heading{font-family:var(--display);font-style:italic;font-size:30px;color:var(--white);margin-bottom:10px;font-weight:600;line-height:1.2}
 .auth-desc{font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:28px;font-family:var(--sans);font-weight:400}
-.auth-err{
-  background:var(--red-g);border:1px solid rgba(240,107,107,0.2);
-  border-radius:var(--r);padding:11px 15px;
-  font-size:12px;color:var(--red);margin-bottom:16px;font-family:var(--sans);font-weight:500;
-}
+.auth-err{background:var(--red-g);border:1px solid rgba(240,107,107,0.2);border-radius:var(--r);padding:11px 15px;font-size:12px;color:var(--red);margin-bottom:16px;font-family:var(--sans);font-weight:500}
 
 /* ── Form fields ── */
 .f{margin-bottom:20px}
-.f label{
-  display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--text2);margin-bottom:8px;font-weight:700;font-family:var(--sans);
-}
-.f input,.f select,.f textarea{
-  width:100%;background:var(--bg3);
-  border:1px solid var(--line2);border-radius:var(--r);
-  padding:13px 15px;font-family:var(--sans);font-size:14px;color:var(--white);
-  outline:none;transition:border-color 0.2s,box-shadow 0.2s,background 0.2s;
-  -webkit-appearance:none;appearance:none;line-height:1.5;font-weight:500;
-}
-.f input:focus,.f select:focus,.f textarea:focus{
-  border-color:var(--accent);background:var(--bg4);
-  box-shadow:0 0 0 3px var(--accent-g);
-}
+.f label{display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;font-weight:700;font-family:var(--sans)}
+.f input,.f select,.f textarea{width:100%;background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:13px 15px;font-family:var(--sans);font-size:14px;color:var(--white);outline:none;transition:border-color 0.2s,box-shadow 0.2s,background 0.2s;-webkit-appearance:none;appearance:none;line-height:1.5;font-weight:500}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);background:var(--bg4);box-shadow:0 0 0 3px var(--accent-g)}
 .f input::placeholder,.f textarea::placeholder{color:var(--text3);font-weight:400}
 .f textarea{min-height:100px;resize:vertical;line-height:1.7}
 
 /* ── Buttons ── */
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:12px 22px;border-radius:var(--r);
-  font-family:var(--sans);font-size:12px;font-weight:700;
-  letter-spacing:1px;text-transform:uppercase;cursor:pointer;
-  transition:all 0.2s cubic-bezier(0.16,1,0.3,1);border:1px solid transparent;
-}
-.btn-primary{
-  background:var(--accent);color:#fff;border-color:var(--accent);
-  box-shadow:0 4px 16px rgba(0,0,0,0.15);
-}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s cubic-bezier(0.16,1,0.3,1);border:1px solid transparent}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 4px 16px rgba(0,0,0,0.15)}
 .btn-primary:hover{background:var(--accent-d);box-shadow:0 6px 24px rgba(0,0,0,0.2);transform:translateY(-1px)}
 .btn-primary:active{transform:translateY(0)}
-.btn-ghost{
-  background:transparent;color:var(--text2);
-  border-color:var(--line2);
-}
+.btn-ghost{background:transparent;color:var(--text2);border-color:var(--line2)}
 .btn-ghost:hover{border-color:var(--line2);color:var(--text);background:var(--bg3)}
 .btn-danger{background:transparent;color:var(--red);border-color:rgba(240,107,107,0.2)}
 .btn-danger:hover{background:var(--red-g)}
@@ -215,109 +155,42 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .shell{display:flex;min-height:100vh;position:relative}
 
 /* ── Sidebar ── */
-.sidebar{
-  width:var(--sidebar-w);flex-shrink:0;
-  background:var(--bg1);
-  border-right:1px solid var(--line);
-  display:flex;flex-direction:column;position:fixed;height:100vh;
-  z-index:100;top:0;left:0;transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
-}
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg1);border-right:1px solid var(--line);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;top:0;left:0;transition:transform 0.3s cubic-bezier(0.16,1,0.3,1)}
 .sb-top{padding:24px 20px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
 .sb-brand{display:flex;flex-direction:column;gap:3px}
-.sb-logo{
-  font-family:var(--display);font-style:italic;font-size:24px;
-  color:var(--white);line-height:1.1;font-weight:600;
-}
+.sb-logo{font-family:var(--display);font-style:italic;font-size:24px;color:var(--white);line-height:1.1;font-weight:600}
 .sb-logo span{color:var(--accent)}
 .sb-ver{font-size:10px;letter-spacing:1.5px;color:var(--text3);font-family:var(--mono);text-transform:uppercase}
-.sb-sync{
-  display:flex;align-items:center;gap:6px;
-  font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-family:var(--mono);
-}
-.sync-dot{
-  width:6px;height:6px;border-radius:50%;background:var(--green);
-  box-shadow:0 0 8px var(--green);
-  animation:pulse 2.5s ease-in-out infinite;
-}
+.sb-sync{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-family:var(--mono)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2.5s ease-in-out infinite}
 .nav{flex:1;padding:14px 10px;overflow-y:auto}
-.nb{
-  width:100%;display:flex;align-items:center;gap:11px;
-  padding:11px 14px;border-radius:var(--r);
-  font-family:var(--sans);font-size:13px;font-weight:600;
-  letter-spacing:0.2px;
-  color:var(--text2);background:none;border:none;cursor:pointer;
-  transition:all 0.18s;text-align:left;margin-bottom:3px;position:relative;
-}
+.nb{width:100%;display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:0.2px;color:var(--text2);background:none;border:none;cursor:pointer;transition:all 0.18s;text-align:left;margin-bottom:3px;position:relative}
 .nb svg{opacity:0.5;transition:opacity 0.18s;flex-shrink:0}
 .nb:hover{color:var(--text);background:var(--bg2)}
 .nb:hover svg{opacity:0.8}
 .nb.on{color:var(--accent);background:var(--accent-gs);border:1px solid rgba(232,160,69,0.15)}
 .nb.on svg{opacity:1;color:var(--accent)}
-.nb.on::before{
-  content:'';position:absolute;left:0;top:25%;bottom:25%;
-  width:2px;border-radius:1px;background:var(--accent);
-}
+.nb.on::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:2px;border-radius:1px;background:var(--accent)}
 .sb-bottom{padding:12px 10px;border-top:1px solid var(--line)}
-.user-tile{
-  display:flex;align-items:center;gap:11px;padding:11px 13px;
-  border-radius:var(--r);background:var(--bg2);
-  border:1px solid var(--line);cursor:pointer;
-  transition:all 0.18s;margin-bottom:10px;
-}
+.user-tile{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--r);background:var(--bg2);border:1px solid var(--line);cursor:pointer;transition:all 0.18s;margin-bottom:10px}
 .user-tile:hover{border-color:rgba(232,160,69,0.25);background:var(--bg3)}
-.avatar{
-  width:32px;height:32px;border-radius:8px;
-  background:var(--accent-g);border:1px solid rgba(232,160,69,0.3);
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--sans);font-size:14px;color:var(--accent);flex-shrink:0;font-weight:800;
-}
+.avatar{width:32px;height:32px;border-radius:8px;background:var(--accent-g);border:1px solid rgba(232,160,69,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:14px;color:var(--accent);flex-shrink:0;font-weight:800}
 .u-name{font-size:13px;color:var(--text);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .u-sub{font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
-
 .sb-actions{display:flex;gap:4px;align-items:center;justify-content:space-between;padding:0 4px}
-.so-btn{
-  padding:7px 10px;background:none;border:none;
-  font-family:var(--sans);font-size:11px;font-weight:600;
-  color:var(--text3);cursor:pointer;transition:color 0.15s;border-radius:6px;
-}
+.so-btn{padding:7px 10px;background:none;border:none;font-family:var(--sans);font-size:11px;font-weight:600;color:var(--text3);cursor:pointer;transition:color 0.15s;border-radius:6px}
 .so-btn:hover{color:var(--red);background:var(--red-g)}
-.theme-btn{
-  display:flex;align-items:center;gap:6px;
-  padding:7px 12px;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;
-  font-family:var(--sans);font-size:11px;font-weight:600;
-  color:var(--text2);cursor:pointer;transition:all 0.18s;
-}
+.theme-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;font-family:var(--sans);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.18s}
 .theme-btn:hover{color:var(--accent);border-color:rgba(232,160,69,0.3)}
 
 /* ── Mobile nav ── */
-.mobile-topbar{
-  display:none;position:fixed;top:0;left:0;right:0;
-  background:var(--bg1);border-bottom:1px solid var(--line);
-  padding:13px 18px;z-index:200;
-  align-items:center;justify-content:space-between;
-}
+.mobile-topbar{display:none;position:fixed;top:0;left:0;right:0;background:var(--bg1);border-bottom:1px solid var(--line);padding:13px 18px;z-index:200;align-items:center;justify-content:space-between}
 .mobile-logo{font-family:var(--display);font-style:italic;font-size:22px;color:var(--white);font-weight:600}
 .mobile-logo span{color:var(--accent)}
-.mobile-menu-btn{
-  background:none;border:1px solid var(--line2);border-radius:8px;
-  padding:8px 12px;cursor:pointer;color:var(--text);
-  display:flex;align-items:center;gap:6px;font-size:12px;font-family:var(--sans);font-weight:700;
-}
-.mobile-overlay{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:98;
-}
-.mobile-nav-bottom{
-  display:none;position:fixed;bottom:0;left:0;right:0;
-  background:var(--bg1);border-top:1px solid var(--line);
-  padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:200;
-  align-items:center;justify-content:space-around;
-}
-.mnb{
-  display:flex;flex-direction:column;align-items:center;gap:4px;
-  padding:6px 12px;border:none;background:none;cursor:pointer;
-  color:var(--text3);font-family:var(--sans);font-size:10px;font-weight:600;
-  border-radius:8px;transition:all 0.15s;min-width:56px;
-}
+.mobile-menu-btn{background:none;border:1px solid var(--line2);border-radius:8px;padding:8px 12px;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:6px;font-size:12px;font-family:var(--sans);font-weight:700}
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:98}
+.mobile-nav-bottom{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg1);border-top:1px solid var(--line);padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:200;align-items:center;justify-content:space-around}
+.mnb{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 12px;border:none;background:none;cursor:pointer;color:var(--text3);font-family:var(--sans);font-size:10px;font-weight:600;border-radius:8px;transition:all 0.15s;min-width:56px}
 .mnb svg{opacity:0.5}
 .mnb.on{color:var(--accent)}
 .mnb.on svg{opacity:1;color:var(--accent)}
@@ -328,25 +201,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 
 /* ── Page header ── */
 .ph{margin-bottom:44px}
-.ph-ey{
-  font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);
-  margin-bottom:12px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:500;
-}
+.ph-ey{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:500}
 .ph-ey::before{content:'';width:20px;height:1px;background:var(--accent);opacity:0.5}
-.ph-title{
-  font-family:var(--display);font-size:50px;font-style:italic;
-  color:var(--white);line-height:1.05;font-weight:600;
-}
+.ph-title{font-family:var(--display);font-size:50px;font-style:italic;color:var(--white);line-height:1.05;font-weight:600}
 .ph-title em{color:var(--accent);font-style:italic}
 .ph-sub{font-size:14px;color:var(--text2);margin-top:10px;line-height:1.6;font-family:var(--sans);font-weight:400}
 
 /* ── Stats Grid ── */
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
-.sc{
-  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);
-  padding:22px 24px;position:relative;overflow:hidden;
-  transition:all 0.25s;cursor:default;
-}
+.sc{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:22px 24px;position:relative;overflow:hidden;transition:all 0.25s;cursor:default}
 .sc:hover{border-color:var(--line2);box-shadow:0 12px 32px rgba(0,0,0,0.15)}
 .sc-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;font-family:var(--sans);font-weight:700}
 .sc-val{font-family:var(--display);font-size:36px;line-height:1.05;font-style:italic;font-weight:600}
@@ -361,29 +224,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .sc-stripe.blue{background:var(--blue)}
 
 /* ── Section labels ── */
-.sl{
-  font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);
-  margin-bottom:16px;display:flex;align-items:center;gap:12px;font-family:var(--sans);font-weight:700;
-}
+.sl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:16px;display:flex;align-items:center;gap:12px;font-family:var(--sans);font-weight:700}
 .sl::after{content:'';flex:1;height:1px;background:var(--line)}
 
 /* ── Equity Curve ── */
-.curve-card{
-  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);
-  padding:26px 30px;margin-bottom:24px;
-}
+.curve-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:26px 30px;margin-bottom:24px}
 .curve-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
 .curve-r{font-family:var(--display);font-size:40px;line-height:1.1;font-style:italic;font-weight:600}
 .curve-meta{font-size:12px;color:var(--text3);margin-top:5px;font-family:var(--sans);font-weight:500}
 
 /* ── Asset Bars ── */
 .ab-list{display:flex;flex-direction:column;gap:6px;margin-bottom:24px}
-.ab-row{
-  display:grid;grid-template-columns:140px 1fr 72px 64px;
-  align-items:center;gap:12px;
-  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);
-  padding:13px 18px;transition:all 0.15s;
-}
+.ab-row{display:grid;grid-template-columns:140px 1fr 72px 64px;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:13px 18px;transition:all 0.15s}
 .ab-row:hover{border-color:var(--line2);background:var(--bg3)}
 .ab-name{font-size:13px;color:var(--text);font-weight:600;font-family:var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ab-track{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
@@ -393,15 +245,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 
 /* ── Table ── */
 .tbl-wrap{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden}
-.tbl-wrap table{width:100%;border-collapse:collapse}
+/* FIX: horizontal scroll for wide tables */
+.tbl-scroll{overflow-x:auto;width:100%}
+.tbl-wrap table{width:100%;border-collapse:collapse;min-width:700px}
 .tbl-wrap thead tr{border-bottom:1px solid var(--line);background:var(--bg3)}
-.tbl-wrap th{
-  padding:13px 15px;font-size:11px;letter-spacing:1px;text-transform:uppercase;
-  color:var(--text2);text-align:left;font-weight:700;font-family:var(--sans);white-space:nowrap;
-}
-.tbl-wrap tbody tr{border-bottom:1px solid var(--line);transition:all 0.1s}
+.tbl-wrap th{padding:13px 15px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text2);text-align:left;font-weight:700;font-family:var(--sans);white-space:nowrap}
+.tbl-wrap tbody tr{border-bottom:1px solid var(--line);transition:all 0.15s;cursor:pointer}
 .tbl-wrap tbody tr:last-child{border-bottom:none}
-.tbl-wrap tbody tr:hover{background:var(--bg3)}
+.tbl-wrap tbody tr:hover{filter:brightness(1.1)}
 .tbl-wrap td{padding:12px 15px;font-size:13px;white-space:nowrap;font-family:var(--sans)}
 .td-date{color:var(--text2);font-size:12px;font-family:var(--mono)}
 .td-win{color:var(--green);font-weight:700}
@@ -414,9 +265,34 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .sess-badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--sans);background:var(--accent-g);color:var(--accent)}
 .empty-st{padding:64px;text-align:center;font-size:13px;letter-spacing:2px;color:var(--text3);font-family:var(--sans);font-weight:500}
 
+/* ── Row tinting for win/loss ── */
+.row-win{background:rgba(74,222,154,0.05)!important}
+.row-loss{background:rgba(240,107,107,0.05)!important}
+.row-win:hover{background:rgba(74,222,154,0.10)!important}
+.row-loss:hover{background:rgba(240,107,107,0.10)!important}
+
+/* ── Trade detail expand ── */
+.trade-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;animation:pageIn 0.2s ease both}
+.trade-detail-modal{background:var(--bg2);border:1px solid var(--line2);border-radius:18px;width:100%;max-width:620px;max-height:85vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,0.4)}
+.tdm-header{padding:24px 28px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;position:sticky;top:0;background:var(--bg2);z-index:2}
+.tdm-title{font-family:var(--display);font-size:26px;font-style:italic;color:var(--white);font-weight:600}
+.tdm-sub{font-size:12px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
+.tdm-body{padding:24px 28px}
+.tdm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.tdm-field{background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tdm-field-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;font-family:var(--sans);font-weight:700}
+.tdm-field-val{font-size:14px;color:var(--text);font-weight:600;font-family:var(--sans)}
+.tdm-notes{background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:8px}
+.tdm-notes-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;font-family:var(--sans);font-weight:700}
+.tdm-notes-val{font-size:13px;color:var(--text2);line-height:1.7;font-family:var(--sans)}
+.tdm-footer{padding:16px 28px 24px;display:flex;gap:10px;border-top:1px solid var(--line);margin-top:8px}
+
 /* ── Mobile table cards ── */
 .trade-cards{display:none;flex-direction:column;gap:10px}
-.trade-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:16px 18px}
+.trade-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:16px 18px;cursor:pointer;transition:all 0.15s}
+.trade-card:hover{border-color:var(--line2);transform:translateY(-1px)}
+.trade-card.win-card{border-left:2px solid var(--green);background:rgba(74,222,154,0.04)}
+.trade-card.loss-card{border-left:2px solid var(--red);background:rgba(240,107,107,0.04)}
 .tc-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .tc-main{display:flex;align-items:baseline;gap:10px}
 .tc-asset{font-size:15px;font-weight:700;color:var(--white);font-family:var(--sans)}
@@ -424,6 +300,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .tc-r{font-size:20px;font-family:var(--display);font-style:italic;font-weight:600}
 .tc-meta{display:flex;gap:7px;flex-wrap:wrap}
 .tc-note{font-size:13px;color:var(--text2);margin-top:8px;line-height:1.5;font-family:var(--sans)}
+.tc-expand-hint{font-size:10px;color:var(--text3);margin-top:6px;font-family:var(--mono);letter-spacing:1px}
 
 /* ── Win Ring ── */
 .ring-wrap{position:relative;flex-shrink:0}
@@ -434,104 +311,56 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 
 /* ── Filter Tabs ── */
 .ftabs{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--line);border-radius:30px;padding:4px}
-.ftab{
-  padding:7px 16px;border-radius:24px;font-family:var(--sans);
-  font-size:12px;font-weight:700;
-  cursor:pointer;border:none;background:none;color:var(--text3);
-  transition:all 0.18s;
-}
+.ftab{padding:7px 16px;border-radius:24px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;border:none;background:none;color:var(--text3);transition:all 0.18s}
 .ftab.on{background:var(--bg4);color:var(--accent)}
+
+/* ── Sort Controls ── */
+.sort-row{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.sort-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-family:var(--sans);font-weight:700}
+.sort-btn{padding:6px 14px;border-radius:20px;font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--line2);background:var(--bg2);color:var(--text3);transition:all 0.15s;display:flex;align-items:center;gap:5px}
+.sort-btn.on{border-color:rgba(232,160,69,0.4);color:var(--accent);background:var(--accent-gs)}
+.sort-dir{font-size:10px;opacity:0.7}
 
 /* ── Mode Toggle ── */
 .mtoggle{display:flex;gap:6px;margin-bottom:20px}
-.mpill{
-  padding:9px 22px;border-radius:20px;font-family:var(--sans);
-  font-size:13px;font-weight:700;
-  cursor:pointer;border:1px solid var(--line2);background:var(--bg2);color:var(--text3);
-  transition:all 0.18s;
-}
+.mpill{padding:9px 22px;border-radius:20px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;border:1px solid var(--line2);background:var(--bg2);color:var(--text3);transition:all 0.18s}
 .mpill.ml{background:var(--green-g);border-color:rgba(74,222,154,0.3);color:var(--green)}
 .mpill.mb{background:rgba(109,184,255,0.08);border-color:rgba(109,184,255,0.25);color:var(--blue)}
 
 /* ── Form Panels ── */
-.fp{
-  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);
-  padding:26px 30px;margin-bottom:12px;
-}
-.fp-title{
-  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
-  color:var(--text2);margin-bottom:22px;padding-bottom:16px;
-  border-bottom:1px solid var(--line);
-  display:flex;align-items:center;gap:10px;font-family:var(--sans);
-}
+.fp{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:26px 30px;margin-bottom:12px}
+.fp-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;font-family:var(--sans)}
 .fp-title::before{content:'';width:12px;height:2px;background:var(--accent);opacity:0.8;border-radius:1px}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 .fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px}
 
-.commit-btn{
-  width:100%;padding:16px;
-  background:var(--accent);border:none;border-radius:var(--r);
-  font-family:var(--sans);font-size:14px;font-weight:800;
-  letter-spacing:1.5px;text-transform:uppercase;color:#fff;
-  cursor:pointer;transition:all 0.2s;
-  box-shadow:0 4px 20px rgba(0,0,0,0.15);
-}
+.commit-btn{width:100%;padding:16px;background:var(--accent);border:none;border-radius:var(--r);font-family:var(--sans);font-size:14px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#fff;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 20px rgba(0,0,0,0.15)}
 .commit-btn:hover{background:var(--accent-d);transform:translateY(-1px);box-shadow:0 6px 28px rgba(0,0,0,0.2)}
 .commit-btn:active{transform:translateY(0)}
 .commit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
 
 /* ── Strategy steps ── */
-.strat-step{
-  background:var(--bg3);border:1px solid var(--line);border-radius:var(--r);
-  padding:16px 18px;margin-bottom:8px;
-  transition:border-color 0.18s,box-shadow 0.18s;
-}
+.strat-step{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-bottom:8px;transition:border-color 0.18s,box-shadow 0.18s}
 .strat-step:focus-within{border-color:rgba(232,160,69,0.3);box-shadow:0 0 0 2px var(--accent-g)}
-.step-lbl{
-  font-size:12px;font-weight:700;
-  color:var(--text2);margin-bottom:10px;
-  display:flex;align-items:center;gap:8px;font-family:var(--sans);
-}
-.step-num{
-  width:18px;height:18px;border-radius:4px;
-  background:var(--accent-g);border:1px solid rgba(232,160,69,0.2);
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;color:var(--accent);font-weight:800;font-family:var(--mono);
-}
+.step-lbl{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:8px;font-family:var(--sans)}
+.step-num{width:18px;height:18px;border-radius:4px;background:var(--accent-g);border:1px solid rgba(232,160,69,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent);font-weight:800;font-family:var(--mono)}
 
 /* ── Checkbox ── */
 .ck-field{display:flex;align-items:center;gap:12px;cursor:pointer;padding:4px 0}
-.ck-box{
-  width:22px;height:22px;border-radius:6px;flex-shrink:0;
-  border:1.5px solid var(--line2);background:var(--bg4);
-  display:flex;align-items:center;justify-content:center;
-  transition:all 0.18s;
-}
+.ck-box{width:22px;height:22px;border-radius:6px;flex-shrink:0;border:1.5px solid var(--line2);background:var(--bg4);display:flex;align-items:center;justify-content:center;transition:all 0.18s}
 .ck-box.on{background:var(--accent);border-color:var(--accent)}
 .ck-lbl{font-size:14px;color:var(--text);transition:color 0.15s;font-family:var(--sans);font-weight:500}
 .ck-field:hover .ck-lbl{color:var(--white)}
 
 /* ── Multi-select chips ── */
 .ms-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-.ms-chip{
-  padding:6px 12px;border-radius:20px;border:1px solid var(--line2);
-  background:var(--bg3);color:var(--text3);
-  font-family:var(--sans);font-size:12px;font-weight:600;
-  cursor:pointer;transition:all 0.15s;user-select:none;
-}
+.ms-chip{padding:6px 12px;border-radius:20px;border:1px solid var(--line2);background:var(--bg3);color:var(--text3);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;user-select:none}
 .ms-chip:hover{border-color:rgba(232,160,69,0.3);color:var(--text)}
-.ms-chip.on{
-  background:var(--accent-g);border-color:rgba(232,160,69,0.4);
-  color:var(--accent);
-}
+.ms-chip.on{background:var(--accent-g);border-color:rgba(232,160,69,0.4);color:var(--accent)}
 
 /* ── Builder ── */
-.builder-shell{
-  min-height:100vh;display:flex;align-items:flex-start;justify-content:center;
-  position:relative;z-index:1;padding:60px 24px 80px;overflow-y:auto;
-  background:var(--bg);
-}
+.builder-shell{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;position:relative;z-index:1;padding:60px 24px 80px;overflow-y:auto;background:var(--bg)}
 .builder-wrap{width:100%;max-width:660px}
 .b-step{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:500}
 .b-step::before{content:'';width:20px;height:1px;background:var(--accent);opacity:0.5}
@@ -539,70 +368,34 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .b-desc{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:34px;font-family:var(--sans)}
 .strat-name-area{margin-bottom:28px}
 .strat-name-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;font-family:var(--sans);font-weight:700}
-.strat-name-input{
-  font-family:var(--display);font-style:italic;font-size:30px;font-weight:600;
-  background:transparent;border:none;border-bottom:1px solid var(--line2);
-  border-radius:0;padding:6px 0;color:var(--white);width:100%;outline:none;
-  transition:border-color 0.2s;
-}
+.strat-name-input{font-family:var(--display);font-style:italic;font-size:30px;font-weight:600;background:transparent;border:none;border-bottom:1px solid var(--line2);border-radius:0;padding:6px 0;color:var(--white);width:100%;outline:none;transition:border-color 0.2s}
 .strat-name-input:focus{border-bottom-color:var(--accent)}
 .strat-name-input::placeholder{color:var(--text3)}
 
 .fl-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
-.fl-row{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);
-  padding:12px 16px;transition:all 0.15s;
-}
+.fl-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px;transition:all 0.15s}
 .fl-row:hover{border-color:var(--line2)}
 .fl-left{display:flex;align-items:center;gap:12px}
-.fl-num{
-  width:24px;height:24px;border-radius:6px;
-  background:var(--accent-g);border:1px solid rgba(232,160,69,0.2);
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--mono);font-size:11px;color:var(--accent);flex-shrink:0;font-weight:700;
-}
+.fl-num{width:24px;height:24px;border-radius:6px;background:var(--accent-g);border:1px solid rgba(232,160,69,0.2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--accent);flex-shrink:0;font-weight:700}
 .fl-name{font-size:14px;color:var(--text);font-weight:600;font-family:var(--sans)}
 .fl-type{font-size:11px;color:var(--text3);margin-top:3px;font-family:var(--sans);font-weight:500}
 .fl-acts{display:flex;gap:4px}
-.ib{
-  background:none;border:none;cursor:pointer;color:var(--text3);
-  padding:5px;display:flex;align-items:center;
-  transition:color 0.12s;border-radius:4px;
-}
+.ib{background:none;border:none;cursor:pointer;color:var(--text3);padding:5px;display:flex;align-items:center;transition:color 0.12s;border-radius:4px}
 .ib:hover{color:var(--text);background:var(--bg3)}
 .ib.del:hover{color:var(--red)}
+.ib.edit-btn:hover{color:var(--accent)}
 
-.add-trig{
-  width:100%;padding:16px;border:1.5px dashed var(--line2);border-radius:var(--r);
-  background:none;font-family:var(--sans);font-size:9px;letter-spacing:3px;
-  text-transform:uppercase;color:var(--text3);cursor:pointer;font-weight:700;
-  transition:all 0.18s;margin-bottom:16px;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
+.add-trig{width:100%;padding:16px;border:1.5px dashed var(--line2);border-radius:var(--r);background:none;font-family:var(--sans);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);cursor:pointer;font-weight:700;transition:all 0.18s;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px}
 .add-trig:hover{border-color:rgba(232,160,69,0.4);color:var(--accent);background:var(--accent-gs)}
 
-.add-panel{
-  background:var(--bg2);border:1px solid var(--line2);
-  border-radius:var(--r2);padding:22px;margin-bottom:14px;
-  animation:pageIn 0.25s cubic-bezier(0.16,1,0.3,1);
-}
+.add-panel{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);padding:22px;margin-bottom:14px;animation:pageIn 0.25s cubic-bezier(0.16,1,0.3,1)}
 .add-panel-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:16px;font-family:var(--sans);text-transform:uppercase;letter-spacing:1px}
 .type-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
-.type-tab{
-  padding:7px 14px;border-radius:6px;font-family:var(--sans);
-  font-size:12px;font-weight:700;
-  cursor:pointer;border:1px solid var(--line2);background:var(--bg3);color:var(--text3);
-  transition:all 0.15s;
-}
+.type-tab{padding:7px 14px;border-radius:6px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--line2);background:var(--bg3);color:var(--text3);transition:all 0.15s}
 .type-tab.on{border-color:rgba(232,160,69,0.4);color:var(--accent);background:var(--accent-gs)}
 .opts-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
 .opt-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.ot{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:5px 12px;background:var(--bg3);border:1px solid var(--line2);
-  border-radius:5px;font-size:12px;color:var(--text2);font-family:var(--sans);font-weight:500;
-}
+.ot{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--bg3);border:1px solid var(--line2);border-radius:5px;font-size:12px;color:var(--text2);font-family:var(--sans);font-weight:500}
 .ot button{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;line-height:1;padding:0;transition:color 0.1s}
 .ot button:hover{color:var(--red)}
 
@@ -615,60 +408,32 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ins-sub{font-size:12px;color:var(--text3);margin-top:5px;font-family:var(--sans);font-weight:500}
 
 /* ── Smart AI panel ── */
-.ai-panel{
-  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);
-  padding:24px 28px;margin-bottom:24px;position:relative;overflow:hidden;
-}
-.ai-panel::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,var(--accent),var(--green),var(--accent));
-  background-size:200% 100%;animation:shimmer 3s linear infinite;
-}
+.ai-panel{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:24px 28px;margin-bottom:24px;position:relative;overflow:hidden}
+.ai-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--green),var(--accent));background-size:200% 100%;animation:shimmer 3s linear infinite}
 .ai-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
-.ai-icon{
-  width:32px;height:32px;border-radius:8px;background:var(--accent-g);
-  border:1px solid rgba(232,160,69,0.3);
-  display:flex;align-items:center;justify-content:center;font-size:16px;
-}
+.ai-icon{width:32px;height:32px;border-radius:8px;background:var(--accent-g);border:1px solid rgba(232,160,69,0.3);display:flex;align-items:center;justify-content:center;font-size:16px}
 .ai-title{font-size:14px;font-weight:800;color:var(--white);font-family:var(--sans)}
 .ai-sub{font-size:12px;color:var(--text3);font-family:var(--sans);font-weight:500}
 .ai-insights{display:flex;flex-direction:column;gap:10px}
-.ai-item{
-  display:flex;align-items:flex-start;gap:12px;padding:14px 16px;
-  background:var(--bg3);border:1px solid var(--line);border-radius:var(--r);
-}
+.ai-item{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--bg3);border:1px solid var(--line);border-radius:var(--r)}
 .ai-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
 .ai-item-title{font-size:13px;font-weight:700;color:var(--white);font-family:var(--sans);margin-bottom:5px}
 .ai-item-body{font-size:13px;color:var(--text2);line-height:1.6;font-family:var(--sans)}
 
 /* ── Filter Panel ── */
-.filter-bar{
-  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);
-  padding:20px 24px;margin-bottom:24px;
-}
+.filter-bar{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:20px 24px;margin-bottom:24px}
 .filter-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:16px;font-family:var(--sans);display:flex;align-items:center;gap:8px}
 .filter-title::before{content:'';width:12px;height:1px;background:var(--accent);opacity:0.6}
 .filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
 .flt-group label{display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:7px;font-family:var(--sans);font-weight:700}
-.flt-group select,.flt-group input{
-  width:100%;background:var(--bg3);border:1px solid var(--line2);border-radius:8px;
-  padding:10px 13px;font-family:var(--sans);font-size:13px;color:var(--text);font-weight:500;
-  outline:none;-webkit-appearance:none;appearance:none;
-  transition:border-color 0.2s;
-}
+.flt-group select,.flt-group input{width:100%;background:var(--bg3);border:1px solid var(--line2);border-radius:8px;padding:10px 13px;font-family:var(--sans);font-size:13px;color:var(--text);font-weight:500;outline:none;-webkit-appearance:none;appearance:none;transition:border-color 0.2s}
 .flt-group select:focus,.flt-group input:focus{border-color:var(--accent)}
 .filter-actions{display:flex;gap:8px;margin-top:12px;align-items:center}
 .flt-count{font-size:12px;color:var(--text3);font-family:var(--sans);font-weight:500}
 
 /* ── Export button ── */
 .export-area{display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
-.export-btn{
-  display:flex;align-items:center;gap:6px;
-  padding:8px 16px;border-radius:8px;border:1px solid var(--line2);
-  background:var(--bg2);color:var(--text2);font-family:var(--sans);
-  font-size:11px;font-weight:700;letter-spacing:0.5px;
-  cursor:pointer;transition:all 0.18s;
-}
+.export-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:1px solid var(--line2);background:var(--bg2);color:var(--text2);font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.18s}
 .export-btn:hover{border-color:rgba(232,160,69,0.4);color:var(--accent);background:var(--accent-gs)}
 
 /* ── Settings ── */
@@ -677,15 +442,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .div{width:100%;height:1px;background:var(--line);margin:24px 0}
 
 /* ── Loader ── */
-.loader-sh{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:var(--bg);position:relative;z-index:1;flex-direction:column;gap:16px;
-}
-.loader-ring{
-  width:36px;height:36px;border:2px solid var(--line2);
-  border-top-color:var(--accent);border-radius:50%;
-  animation:spin 0.8s linear infinite;
-}
+.loader-sh{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);position:relative;z-index:1;flex-direction:column;gap:16px}
+.loader-ring{width:36px;height:36px;border:2px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
 .loader-txt{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);font-family:var(--sans);font-weight:600}
 
 /* ── Progress bar ── */
@@ -719,6 +477,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   .filter-grid{grid-template-columns:1fr 1fr}
   .export-area{gap:6px}
   .ai-panel{padding:18px 20px}
+  .tdm-grid{grid-template-columns:1fr}
 }
 @media(max-width:480px){
   .fg2,.fg3,.fg4{grid-template-columns:1fr}
@@ -732,6 +491,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 const rSign = v => { const n=parseFloat(v||0); return `${n>=0?'+':''}${n.toFixed(2)}R` };
 const rClass = v => parseFloat(v||0)>0?'td-win':parseFloat(v||0)<0?'td-loss':'td-be';
 const fmtD = d => { if(!d) return '—'; try{return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})}catch{return d} };
+const rowClass = t => t.outcome==='Win'?'row-win':t.outcome==='Loss'?'row-loss':'';
+const cardClass = t => t.outcome==='Win'?'win-card':t.outcome==='Loss'?'loss-card':'';
 
 // ─── Animated Number ────────────────────────────────────────────────────────
 function AnimNum({ val, dec=1, prefix='', suffix='' }) {
@@ -761,7 +522,9 @@ const I = {
   Chart:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>,
   Brain:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>,
   Cog:     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  Globe:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
   Trash:   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"/></svg>,
+  Edit:    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
   Up:      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18,15 12,9 6,15"/></svg>,
   Down:    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6,9 12,15 18,9"/></svg>,
   Chk:     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12"/></svg>,
@@ -771,6 +534,7 @@ const I = {
   Filter:  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"/></svg>,
   Menu:    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
   X:       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  Eye:     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
 };
 
 // ─── WinRateRing ─────────────────────────────────────────────────────────────
@@ -937,12 +701,9 @@ function exportCSV(trades, mode='all', fields=[]) {
       return `"${(v||'').toString().replace(/"/g,'""')}"`;
     });
     const row = [
-      t.date||'',
-      t.mode||'',
+      t.date||'',t.mode||'',
       `"${(t.asset||'').replace(/"/g,'""')}"`,
-      t.session||'No Session',
-      t.outcome||'',
-      t.resultR||0,
+      t.session||'No Session',t.outcome||'',t.resultR||0,
       `"${(t.notes||'').replace(/"/g,'""')}"`,
       ...stratVals
     ];
@@ -959,19 +720,14 @@ function exportCSV(trades, mode='all', fields=[]) {
 function buildSmartInsights(trades) {
   const closed = trades.filter(t=>t.outcome!=='No Trade');
   if(closed.length<3) return [{type:'info',title:'Keep logging trades',body:'Log at least 3 trades to unlock your personal smart summary.'}];
-  
   const insights = [];
   const wins = closed.filter(t=>t.outcome==='Win');
   const losses = closed.filter(t=>t.outcome==='Loss');
   const wr = wins.length/closed.length;
   const netR = closed.reduce((s,t)=>s+parseFloat(t.resultR||0),0);
-  
-  // Win rate insight
   if(wr>=0.6) insights.push({type:'strength',title:`Strong win rate at ${(wr*100).toFixed(0)}%`,body:'You are winning more than 6 out of 10 trades — that is consistency. Keep executing your rules.'});
   else if(wr<=0.4) insights.push({type:'weakness',title:`Win rate is ${(wr*100).toFixed(0)}% — focus on quality`,body:'Fewer than 4 in 10 trades close as wins. Consider waiting for higher-conviction setups only.'});
   else insights.push({type:'neutral',title:`Win rate at ${(wr*100).toFixed(0)}%`,body:'Solid middle-ground. Track whether you are holding winners long enough — average R matters more than win rate alone.'});
-  
-  // Best asset
   const assetMap={};
   closed.forEach(t=>{
     if(!t.asset) return;
@@ -987,14 +743,11 @@ function buildSmartInsights(trades) {
     insights.push({type:'strength',title:`${bestAsset} is your strongest pair`,body:`Net ${rSign(best.r)} across ${best.n} trades — ${best.n?((best.w/best.n)*100).toFixed(0):0}% WR. This is where your edge lives.`});
     if(byR.length>1&&worst.r<0) insights.push({type:'weakness',title:`${worstAsset} is costing you pips`,body:`Net ${rSign(worst.r)} on this pair. Consider limiting or pausing it until you understand the pattern.`});
   }
-  
-  // Best session
   const sessMap={};
   closed.forEach(t=>{
     const s=t.session||'No Session';
     if(!sessMap[s]) sessMap[s]={r:0,n:0,w:0};
-    sessMap[s].r+=parseFloat(t.resultR||0);
-    sessMap[s].n++;
+    sessMap[s].r+=parseFloat(t.resultR||0);sessMap[s].n++;
     if(t.outcome==='Win') sessMap[s].w++;
   });
   const hasSessions=Object.keys(sessMap).some(k=>k!=='No Session'&&sessMap[k].n>0);
@@ -1009,8 +762,6 @@ function buildSmartInsights(trades) {
       }
     }
   }
-  
-  // Day of week
   const dayMap={};
   closed.forEach(t=>{
     if(!t.date) return;
@@ -1024,12 +775,90 @@ function buildSmartInsights(trades) {
     const best=sorted[0],worst=sorted[sorted.length-1];
     if(dayMap[worst].r<0&&worst!==best) insights.push({type:'neutral',title:`Worst day: ${worst}`,body:`You have lost ${rSign(dayMap[worst].r)} net on ${worst}s. Consider taking it off or being more selective that day.`});
   }
-  
-  // Profitability summary
   if(netR>0) insights.push({type:'strength',title:'You are net profitable — keep the discipline',body:`Total net R is ${rSign(netR)} across ${closed.length} trades. Protect your capital and let the edge compound.`});
   else insights.push({type:'weakness',title:'Still in the red — stay patient',body:`Net R is ${rSign(netR)}. Focus on risk management first: make sure every loss is exactly 1R, never more.`});
-  
   return insights;
+}
+
+// ─── Trade Detail Modal ──────────────────────────────────────────────────────
+function TradeDetailModal({ trade, fields, onClose, onEdit, onDelete }) {
+  if(!trade) return null;
+  const rVal = parseFloat(trade.resultR||0);
+  const outcomeColor = trade.outcome==='Win'?'var(--green)':trade.outcome==='Loss'?'var(--red)':'var(--accent)';
+
+  return (
+    <div className="trade-detail-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+      <div className="trade-detail-modal">
+        <div className="tdm-header">
+          <div>
+            <div className="tdm-title">{trade.asset||'Unknown Asset'}</div>
+            <div className="tdm-sub">{fmtD(trade.date)} · {trade.mode} · {trade.session!=='No Session'?trade.session:'No session'}</div>
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <div style={{fontFamily:'var(--display)',fontSize:28,fontStyle:'italic',fontWeight:600,color:rVal>=0?'var(--green)':'var(--red)'}}>{rSign(trade.resultR)}</div>
+            <button className="ib" onClick={onClose} style={{padding:8}}>{I.X}</button>
+          </div>
+        </div>
+        <div className="tdm-body">
+          {/* Core fields */}
+          <div className="tdm-grid">
+            {[
+              {label:'Outcome',val:<span style={{color:outcomeColor,fontWeight:700}}>{trade.outcome}</span>},
+              {label:'Result',val:<span style={{color:rVal>=0?'var(--green)':'var(--red)',fontWeight:700,fontFamily:'var(--mono)'}}>{rSign(trade.resultR)}</span>},
+              {label:'Date',val:fmtD(trade.date)},
+              {label:'Mode',val:<span className={`badge ${trade.mode==='Live'?'bl':'bb'}`}>{trade.mode}</span>},
+              {label:'Asset',val:trade.asset||'—'},
+              {label:'Session',val:trade.session&&trade.session!=='No Session'?<span className="sess-badge">{trade.session}</span>:'—'},
+            ].map((f,i)=>(
+              <div key={i} className="tdm-field">
+                <div className="tdm-field-label">{f.label}</div>
+                <div className="tdm-field-val">{f.val}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Strategy data */}
+          {fields.length>0&&(
+            <>
+              <div className="sl" style={{marginBottom:12}}>Strategy Checklist</div>
+              <div className="tdm-grid">
+                {fields.map(f=>{
+                  const v=trade.strategyData?.[f.id];
+                  let display='—';
+                  if(f.type==='checkbox') display=v?'✓ Yes':'✗ No';
+                  else if(Array.isArray(v)) display=v.join(', ')||'—';
+                  else display=v||'—';
+                  return (
+                    <div key={f.id} className="tdm-field">
+                      <div className="tdm-field-label">{f.name}</div>
+                      <div className="tdm-field-val" style={{color:f.type==='checkbox'?(v?'var(--green)':'var(--red)'):undefined}}>{display}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* Notes */}
+          {trade.notes&&(
+            <div className="tdm-notes">
+              <div className="tdm-notes-label">Post-Trade Notes</div>
+              <div className="tdm-notes-val">{trade.notes}</div>
+            </div>
+          )}
+        </div>
+        <div className="tdm-footer">
+          <button className="btn btn-ghost btn-sm" onClick={()=>onEdit(trade)} style={{display:'flex',alignItems:'center',gap:6}}>
+            {I.Edit} Edit Trade
+          </button>
+          <button className="btn btn-danger btn-sm" onClick={()=>onDelete(trade.id)} style={{display:'flex',alignItems:'center',gap:6}}>
+            {I.Trash} Delete
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={onClose} style={{marginLeft:'auto'}}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ─── App Shell ───────────────────────────────────────────────────────────────
@@ -1040,6 +869,7 @@ export default function App() {
   const [view,setView]=useState('dashboard');
   const [theme,setTheme]=useState(()=>localStorage.getItem('pbp-theme')||'dark');
   const [menuOpen,setMenuOpen]=useState(false);
+  const [editingTrade,setEditingTrade]=useState(null);
 
   useEffect(()=>{
     document.documentElement.setAttribute('data-theme',theme);
@@ -1075,6 +905,14 @@ export default function App() {
     await setDoc(tradeDoc(genId()),{...t,userId:authUser.uid,createdAt:Date.now()});
     setView('journal');
   };
+
+  // FIX: edit trade support
+  const updateTrade=async(id,t)=>{
+    await setDoc(tradeDoc(id),{...t,userId:authUser.uid},{ merge:true });
+    setEditingTrade(null);
+    setView('journal');
+  };
+
   const delTrade=async id=>deleteDoc(tradeDoc(id));
   const savePro=async p=>{await setDoc(userDoc(authUser.uid),p,{merge:true});setProfile(p)};
   const handleSignOut=async()=>{await signOut(auth);setProfile(null)};
@@ -1085,6 +923,28 @@ export default function App() {
   );
   if(!authUser||!profile) return (
     <><style>{S}</style><AuthFlow onComplete={p=>setProfile(p)}/></>
+  );
+
+  // If editing a trade, show edit page
+  if(editingTrade) return (
+    <>
+      <style>{S}</style>
+      <div className="shell">
+        <nav className="sidebar">
+          <div className="sb-top">
+            <div className="sb-brand"><div className="sb-logo">Pip <span>by</span> Pip</div><div className="sb-ver">Trade Journal</div></div>
+          </div>
+        </nav>
+        <main className="main">
+          <EditTradePage
+            profile={profile}
+            trade={editingTrade}
+            onSave={(id,t)=>updateTrade(id,t)}
+            onCancel={()=>setEditingTrade(null)}
+          />
+        </main>
+      </div>
+    </>
   );
 
   const fields=profile.strategy?.fields||[];
@@ -1099,7 +959,6 @@ export default function App() {
   return (
     <>
       <style>{S}</style>
-      {/* Mobile top bar */}
       <div className="mobile-topbar">
         <div className="mobile-logo">Pip <span>by</span> Pip</div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
@@ -1111,10 +970,7 @@ export default function App() {
           </button>
         </div>
       </div>
-
-      {/* Mobile overlay */}
       <div className={`mobile-overlay ${menuOpen?'open':''}`} onClick={()=>setMenuOpen(false)}/>
-
       <div className="shell">
         <nav className={`sidebar ${menuOpen?'open':''}`}>
           <div className="sb-top">
@@ -1144,17 +1000,14 @@ export default function App() {
             </div>
           </div>
         </nav>
-
         <main className="main">
-          {view==='dashboard'&&<DashboardPage key="dash" trades={trades} profile={profile}/>}
-          {view==='journal'  &&<JournalPage   key="jrnl" trades={trades} fields={fields} onDelete={delTrade}/>}
-          {view==='add'      &&<AddTradePage  key="add"  profile={profile} onAdd={addTrade}/>}
-          {view==='insights' &&<InsightsPage  key="ins"  trades={trades} fields={fields}/>}
-          {view==='settings' &&<SettingsPage  key="set"  profile={profile} onSave={savePro}/>}
+          {view==='dashboard' &&<DashboardPage  key="dash" trades={trades} profile={profile}/>}
+          {view==='journal'   &&<JournalPage    key="jrnl" trades={trades} fields={fields} onDelete={delTrade} onEdit={t=>{setEditingTrade(t);}}/>}
+          {view==='add'       &&<AddTradePage   key="add"  profile={profile} onAdd={addTrade}/>}
+          {view==='insights'  &&<InsightsPage   key="ins"  trades={trades} fields={fields}/>}
+          {view==='settings'  &&<SettingsPage   key="set"  profile={profile} onSave={savePro}/>}
         </main>
       </div>
-
-      {/* Mobile bottom nav */}
       <div className="mobile-nav-bottom">
         {NAV.map(n=>(
           <button key={n.id} className={`mnb ${view===n.id?'on':''}`} onClick={()=>navigate(n.id)}>
@@ -1230,23 +1083,18 @@ function AuthFlow({onComplete}) {
             <div className="auth-eyebrow">{step==='register'?'Create Account':'Sign In'}</div>
             <div className="auth-heading">{step==='register'?'Start your journal':'Welcome back, trader'}</div>
             <div className="auth-desc">
-              {step==='register'
-                ?'Pick a username and password. No email needed — your username is your identity.'
-                :'Enter your username and password to access your journal.'}
+              {step==='register'?'Pick a username and password. No email needed — your username is your identity.':'Enter your username and password to access your journal.'}
             </div>
             {err&&<div className="auth-err">{err}</div>}
             <form onSubmit={step==='register'?doRegister:doLogin}>
               <div className="f"><label>Username</label>
-                <input type="text" required value={form.username} autoComplete="username"
-                  onChange={e=>setForm({...form,username:e.target.value})} placeholder="e.g. sadik_trader"/>
+                <input type="text" required value={form.username} autoComplete="username" onChange={e=>setForm({...form,username:e.target.value})} placeholder="e.g. sadik_trader"/>
               </div>
               <div className="f"><label>Password</label>
-                <input type="password" required value={form.password} autoComplete={step==='register'?'new-password':'current-password'}
-                  onChange={e=>setForm({...form,password:e.target.value})} placeholder="••••••••"/>
+                <input type="password" required value={form.password} autoComplete={step==='register'?'new-password':'current-password'} onChange={e=>setForm({...form,password:e.target.value})} placeholder="••••••••"/>
               </div>
               {step==='register'&&<div className="f"><label>Confirm Password</label>
-                <input type="password" required value={form.confirm} autoComplete="new-password"
-                  onChange={e=>setForm({...form,confirm:e.target.value})} placeholder="••••••••"/>
+                <input type="password" required value={form.confirm} autoComplete="new-password" onChange={e=>setForm({...form,confirm:e.target.value})} placeholder="••••••••"/>
               </div>}
               <button className="btn btn-primary btn-full" type="submit" disabled={loading} style={{marginTop:8,padding:'14px',fontSize:11}}>
                 {loading?'One moment…':step==='register'?'Create Account →':'Enter Journal →'}
@@ -1266,9 +1114,7 @@ function AuthFlow({onComplete}) {
   return (
     <div className="builder-shell">
       <div className="builder-wrap">
-        <div style={{marginBottom:32}}>
-          <div className="brand-mark" style={{fontSize:32}}>Pip by Pip</div>
-        </div>
+        <div style={{marginBottom:32}}><div className="brand-mark" style={{fontSize:32}}>Pip by Pip</div></div>
         <div className="prog-bar"><div className="prog-fill" style={{width:'66%'}}/></div>
         <div className="b-step">Step 2 of 2 — Your Strategy</div>
         <div className="b-title">Build your<br/>trading checklist</div>
@@ -1317,8 +1163,7 @@ function AuthFlow({onComplete}) {
                 <label>Options</label>
                 <div className="opts-row">
                   <div className="f" style={{margin:0,flex:1}}>
-                    <input type="text" value={nf.optIn} placeholder="Add option…"
-                      onChange={e=>setNf({...nf,optIn:e.target.value})}
+                    <input type="text" value={nf.optIn} placeholder="Add option…" onChange={e=>setNf({...nf,optIn:e.target.value})}
                       onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();if(nf.optIn.trim())setNf({...nf,options:[...nf.options,nf.optIn.trim()],optIn:''})}}}
                     />
                   </div>
@@ -1404,34 +1249,35 @@ function DashboardPage({trades,profile}) {
       <div className="tbl-wrap page-enter s3">
         {!recent.length?<div className="empty-st">No trades yet. Start logging.</div>:(
           <>
-            <table>
-              <thead><tr>
-                <th>Date</th><th>Mode</th><th>Asset</th><th>Session</th>
-                {fields.slice(0,2).map(f=><th key={f.id}>{f.name}</th>)}
-                <th>Outcome</th><th>R</th>
-              </tr></thead>
-              <tbody>
-                {recent.map(t=>(
-                  <tr key={t.id}>
-                    <td className="td-date">{fmtD(t.date)}</td>
-                    <td><span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span></td>
-                    <td style={{color:'var(--text)',fontWeight:600}}>{t.asset||'—'}</td>
-                    <td>{t.session&&t.session!=='No Session'?<span className="sess-badge">{t.session}</span>:<span style={{color:'var(--text3)',fontSize:10}}>—</span>}</td>
-                    {fields.slice(0,2).map(f=>{
-                      const v=t.strategyData?.[f.id];
-                      const d=f.type==='checkbox'?(v?'✓':'—'):Array.isArray(v)?v.join(', '):(v||'—');
-                      return <td key={f.id} style={{color:'var(--text2)',maxWidth:110,overflow:'hidden',textOverflow:'ellipsis'}}>{d}</td>;
-                    })}
-                    <td className={t.outcome==='Win'?'td-win':t.outcome==='Loss'?'td-loss':'td-be'}>{t.outcome}</td>
-                    <td className={rClass(t.resultR)} style={{fontFamily:'var(--mono)',fontWeight:600}}>{rSign(t.resultR)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {/* Mobile cards */}
+            <div className="tbl-scroll">
+              <table>
+                <thead><tr>
+                  <th>Date</th><th>Mode</th><th>Asset</th><th>Session</th>
+                  {fields.slice(0,2).map(f=><th key={f.id}>{f.name}</th>)}
+                  <th>Outcome</th><th>R</th>
+                </tr></thead>
+                <tbody>
+                  {recent.map(t=>(
+                    <tr key={t.id} className={rowClass(t)}>
+                      <td className="td-date">{fmtD(t.date)}</td>
+                      <td><span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span></td>
+                      <td style={{color:'var(--text)',fontWeight:600}}>{t.asset||'—'}</td>
+                      <td>{t.session&&t.session!=='No Session'?<span className="sess-badge">{t.session}</span>:<span style={{color:'var(--text3)',fontSize:10}}>—</span>}</td>
+                      {fields.slice(0,2).map(f=>{
+                        const v=t.strategyData?.[f.id];
+                        const d=f.type==='checkbox'?(v?'✓':'—'):Array.isArray(v)?v.join(', '):(v||'—');
+                        return <td key={f.id} style={{color:'var(--text2)',maxWidth:110,overflow:'hidden',textOverflow:'ellipsis'}}>{d}</td>;
+                      })}
+                      <td className={t.outcome==='Win'?'td-win':t.outcome==='Loss'?'td-loss':'td-be'}>{t.outcome}</td>
+                      <td className={rClass(t.resultR)} style={{fontFamily:'var(--mono)',fontWeight:600}}>{rSign(t.resultR)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <div className="trade-cards" style={{padding:'12px'}}>
               {recent.map(t=>(
-                <div className="trade-card" key={t.id}>
+                <div className={`trade-card ${cardClass(t)}`} key={t.id}>
                   <div className="tc-row">
                     <div className="tc-main">
                       <div className="tc-asset">{t.asset||'—'}</div>
@@ -1455,13 +1301,51 @@ function DashboardPage({trades,profile}) {
 }
 
 // ─── Journal ─────────────────────────────────────────────────────────────────
-function JournalPage({trades,fields,onDelete}) {
+function JournalPage({trades,fields,onDelete,onEdit}) {
   const [scope,setScope]=useState('all');
+  const [sortBy,setSortBy]=useState('date');
+  const [sortDir,setSortDir]=useState('desc');
+  const [selectedTrade,setSelectedTrade]=useState(null);
   const [conf,setConf]=useState(null);
-  const sorted=[...trades].filter(t=>scope==='all'||t.mode===scope).sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  const sorted=useMemo(()=>{
+    let arr=trades.filter(t=>scope==='all'||t.mode===scope);
+    arr=[...arr].sort((a,b)=>{
+      let va,vb;
+      if(sortBy==='date'){va=new Date(a.date||0);vb=new Date(b.date||0)}
+      else if(sortBy==='r'){va=parseFloat(a.resultR||0);vb=parseFloat(b.resultR||0)}
+      else if(sortBy==='asset'){va=a.asset||'';vb=b.asset||''}
+      else if(sortBy==='outcome'){va=a.outcome||'';vb=b.outcome||''}
+      if(va<vb) return sortDir==='asc'?-1:1;
+      if(va>vb) return sortDir==='asc'?1:-1;
+      return 0;
+    });
+    return arr;
+  },[trades,scope,sortBy,sortDir]);
+
+  const toggleSort=col=>{
+    if(sortBy===col) setSortDir(d=>d==='asc'?'desc':'asc');
+    else{setSortBy(col);setSortDir('desc');}
+  };
+  const sortArrow=col=>sortBy===col?(sortDir==='asc'?'↑':'↓'):'';
+
+  const handleDelete=async id=>{
+    await onDelete(id);
+    setSelectedTrade(null);
+    setConf(null);
+  };
 
   return (
     <div className="page page-enter">
+      {selectedTrade&&(
+        <TradeDetailModal
+          trade={selectedTrade}
+          fields={fields}
+          onClose={()=>setSelectedTrade(null)}
+          onEdit={t=>{onEdit(t);setSelectedTrade(null)}}
+          onDelete={handleDelete}
+        />
+      )}
       <div className="ph">
         <div className="ph-ey">Journal</div>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:16}}>
@@ -1478,76 +1362,180 @@ function JournalPage({trades,fields,onDelete}) {
           </div>
         </div>
       </div>
+
+      {/* Sort controls */}
+      <div className="sort-row">
+        <span className="sort-label">Sort:</span>
+        {[['date','Date'],['r','R Result'],['asset','Asset'],['outcome','Outcome']].map(([col,lbl])=>(
+          <button key={col} className={`sort-btn ${sortBy===col?'on':''}`} onClick={()=>toggleSort(col)}>
+            {lbl}<span className="sort-dir">{sortArrow(col)}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="tbl-wrap">
         {!sorted.length?<div className="empty-st">No trades to show.</div>:(
           <>
-            <table>
-              <thead><tr>
-                <th>Date</th><th>Mode</th><th>Asset</th><th>Session</th>
-                {fields.map(f=><th key={f.id}>{f.name}</th>)}
-                <th>Outcome</th><th>R</th><th>Notes</th><th></th>
-              </tr></thead>
-              <tbody>
-                {sorted.map(t=>(
-                  <tr key={t.id}>
-                    <td className="td-date">{fmtD(t.date)}</td>
-                    <td><span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span></td>
-                    <td style={{color:'var(--text)',fontWeight:600}}>{t.asset||'—'}</td>
-                    <td>{t.session&&t.session!=='No Session'?<span className="sess-badge">{t.session}</span>:<span style={{color:'var(--text3)',fontSize:10}}>—</span>}</td>
-                    {fields.map(f=>{
-                      const v=t.strategyData?.[f.id];
-                      const d=f.type==='checkbox'?(v?'✓':'✗'):Array.isArray(v)?v.join(', '):(v||'—');
-                      return <td key={f.id} style={{color:'var(--text2)',maxWidth:120,overflow:'hidden',textOverflow:'ellipsis'}}>{d}</td>;
-                    })}
-                    <td className={t.outcome==='Win'?'td-win':t.outcome==='Loss'?'td-loss':'td-be'}>{t.outcome}</td>
-                    <td className={rClass(t.resultR)} style={{fontFamily:'var(--mono)',fontWeight:600}}>{rSign(t.resultR)}</td>
-                    <td className="td-note">{t.notes||'—'}</td>
-                    <td>
-                      {conf===t.id?(
-                        <span style={{display:'flex',gap:4}}>
-                          <button className="btn btn-danger btn-sm" onClick={()=>{onDelete(t.id);setConf(null)}}>Delete</button>
-                          <button className="btn btn-ghost btn-sm" onClick={()=>setConf(null)}>No</button>
-                        </span>
-                      ):(
-                        <button className="ib del" onClick={()=>setConf(t.id)} style={{padding:6}}>{I.Trash}</button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {/* Mobile cards */}
+            {/* Desktop table */}
+            <div className="tbl-scroll">
+              <table>
+                <thead><tr>
+                  <th>Date</th><th>Mode</th><th>Asset</th><th>Session</th>
+                  <th>Outcome</th><th>R</th><th>Notes</th><th></th>
+                </tr></thead>
+                <tbody>
+                  {sorted.map(t=>(
+                    <tr key={t.id} className={rowClass(t)} onClick={()=>setSelectedTrade(t)} style={{cursor:'pointer'}}>
+                      <td className="td-date">{fmtD(t.date)}</td>
+                      <td><span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span></td>
+                      <td style={{color:'var(--text)',fontWeight:600}}>{t.asset||'—'}</td>
+                      <td>{t.session&&t.session!=='No Session'?<span className="sess-badge">{t.session}</span>:<span style={{color:'var(--text3)',fontSize:10}}>—</span>}</td>
+                      <td className={t.outcome==='Win'?'td-win':t.outcome==='Loss'?'td-loss':'td-be'}>{t.outcome}</td>
+                      <td className={rClass(t.resultR)} style={{fontFamily:'var(--mono)',fontWeight:600}}>{rSign(t.resultR)}</td>
+                      <td className="td-note">{t.notes||'—'}</td>
+                      <td onClick={e=>e.stopPropagation()}>
+                        <div style={{display:'flex',gap:4}}>
+                          <button className="ib edit-btn" title="Edit" onClick={e=>{e.stopPropagation();onEdit(t)}} style={{padding:6}}>{I.Edit}</button>
+                          {conf===t.id?(
+                            <span style={{display:'flex',gap:4}}>
+                              <button className="btn btn-danger btn-sm" onClick={e=>{e.stopPropagation();handleDelete(t.id)}}>Delete</button>
+                              <button className="btn btn-ghost btn-sm" onClick={e=>{e.stopPropagation();setConf(null)}}>No</button>
+                            </span>
+                          ):(
+                            <button className="ib del" onClick={e=>{e.stopPropagation();setConf(t.id)}} style={{padding:6}}>{I.Trash}</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards — clickable, expand to detail */}
             <div className="trade-cards" style={{padding:'12px'}}>
               {sorted.map(t=>(
-                <div className="trade-card" key={t.id}>
+                <div className={`trade-card ${cardClass(t)}`} key={t.id} onClick={()=>setSelectedTrade(t)}>
                   <div className="tc-row">
                     <div className="tc-main">
                       <div className="tc-asset">{t.asset||'—'}</div>
                       <div className="tc-date">{fmtD(t.date)}</div>
                     </div>
-                    <div style={{display:'flex',alignItems:'center',gap:8}}>
-                      <div className={`tc-r ${rClass(t.resultR)}`}>{rSign(t.resultR)}</div>
-                      <button className="ib del" onClick={()=>setConf(conf===t.id?null:t.id)}>{I.Trash}</button>
-                    </div>
+                    <div className={`tc-r ${rClass(t.resultR)}`}>{rSign(t.resultR)}</div>
                   </div>
-                  {conf===t.id&&(
-                    <div style={{display:'flex',gap:6,marginBottom:8}}>
-                      <button className="btn btn-danger btn-sm" onClick={()=>{onDelete(t.id);setConf(null)}}>Confirm Delete</button>
-                      <button className="btn btn-ghost btn-sm" onClick={()=>setConf(null)}>Cancel</button>
-                    </div>
-                  )}
                   <div className="tc-meta">
                     <span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span>
                     {t.session&&t.session!=='No Session'&&<span className="sess-badge">{t.session}</span>}
                     <span className={`badge ${t.outcome==='Win'?'bl':t.outcome==='Loss'?'':'bb'}`} style={t.outcome==='Loss'?{background:'var(--red-g)',color:'var(--red)'}:{}}>{t.outcome}</span>
                   </div>
                   {t.notes&&<div className="tc-note">{t.notes}</div>}
+                  <div className="tc-expand-hint">Tap to view full details →</div>
                 </div>
               ))}
             </div>
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── Edit Trade Page ─────────────────────────────────────────────────────────
+function EditTradePage({profile, trade, onSave, onCancel}) {
+  const fields=profile.strategy?.fields||[];
+  const [mode,setMode]=useState(trade.mode||'Live');
+  const [session,setSession]=useState(trade.session||'No Session');
+  const [base,setBase]=useState({
+    date:trade.date||new Date().toISOString().split('T')[0],
+    asset:trade.asset||'',
+    resultR:Math.abs(parseFloat(trade.resultR||0)).toString(),
+    outcome:trade.outcome||'Win',
+    notes:trade.notes||''
+  });
+  const [sdata,setSdata]=useState(trade.strategyData||{});
+  const [saving,setSaving]=useState(false);
+
+  const submit=async e=>{
+    e.preventDefault();setSaving(true);
+    // Auto-negate R for losses
+    let resultR = parseFloat(base.resultR||0);
+    if(base.outcome==='Loss') resultR = -Math.abs(resultR);
+    else if(base.outcome==='Win') resultR = Math.abs(resultR);
+    await onSave(trade.id,{...trade,...base,resultR,strategyData:sdata,mode,session,strategyName:profile.strategy?.name});
+    setSaving(false);
+  };
+
+  return (
+    <div className="page page-enter">
+      <div className="ph">
+        <div className="ph-ey">Edit Trade</div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:16}}>
+          <div><div className="ph-title">Editing Entry</div><div className="ph-sub">{trade.asset} · {fmtD(trade.date)}</div></div>
+          <div className="mtoggle">
+            {['Live','Backtest'].map(m=>(
+              <button key={m} className={`mpill ${mode===m?(m==='Live'?'ml':'mb'):''}`} onClick={()=>setMode(m)}>{m}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <form onSubmit={submit} style={{maxWidth:820}}>
+        <div className="fp page-enter s0">
+          <div className="fp-title">Core Data</div>
+          <div className="fg4">
+            <div className="f" style={{margin:0}}><label>Date</label><input type="date" value={base.date} onChange={e=>setBase({...base,date:e.target.value})} required/></div>
+            <div className="f" style={{margin:0}}><label>Asset</label>
+              <select value={base.asset} onChange={e=>setBase({...base,asset:e.target.value})} required>
+                <option value="">— select —</option>
+                {ASSETS.map(a=><option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            <div className="f" style={{margin:0}}><label>Session</label>
+              <select value={session} onChange={e=>setSession(e.target.value)}>
+                {SESSIONS.map(s=><option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="f" style={{margin:0}}><label>Outcome</label>
+              <select value={base.outcome} onChange={e=>setBase({...base,outcome:e.target.value})}>
+                {['Win','Loss','Breakeven','No Trade'].map(o=><option key={o}>{o}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{marginTop:16,maxWidth:200}}>
+            <div className="f" style={{margin:0}}>
+              <label>Result (R) — enter positive value</label>
+              <input type="number" step="0.01" min="0" value={base.resultR} onChange={e=>setBase({...base,resultR:e.target.value})} placeholder="e.g. 1 or 2.5" required/>
+            </div>
+          </div>
+          <div style={{marginTop:8,fontSize:12,color:'var(--text3)',fontFamily:'var(--mono)'}}>
+            Loss values are automatically stored as negative.
+          </div>
+        </div>
+        {!!fields.length&&(
+          <div className="fp page-enter s1">
+            <div className="fp-title">Strategy Checklist — {profile.strategy?.name}</div>
+            {fields.map((f,i)=>(
+              <div key={f.id} className="strat-step">
+                <div className="step-lbl"><div className="step-num">{i+1}</div>{f.type!=='checkbox'&&f.name}</div>
+                <SFI field={f} value={sdata[f.id]} onChange={v=>setSdata({...sdata,[f.id]:v})}/>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="fp page-enter s2">
+          <div className="fp-title">Post-Trade Notes</div>
+          <div className="f" style={{margin:0}}>
+            <textarea value={base.notes} onChange={e=>setBase({...base,notes:e.target.value})} placeholder="What went well? What would you change?"/>
+          </div>
+        </div>
+        <div style={{display:'flex',gap:12}}>
+          <button type="submit" className="commit-btn" disabled={saving} style={{flex:1}}>
+            {saving?'Saving…':'Save Changes →'}
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={onCancel} style={{padding:'16px 24px',fontSize:13}}>
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
@@ -1563,7 +1551,11 @@ function AddTradePage({profile,onAdd}) {
 
   const submit=async e=>{
     e.preventDefault();setSaving(true);
-    await onAdd({...base,strategyData:sdata,mode,session,strategyName:profile.strategy?.name});
+    // FIX: auto-negate R for losses, positive for wins
+    let resultR = parseFloat(base.resultR||0);
+    if(base.outcome==='Loss') resultR = -Math.abs(resultR);
+    else if(base.outcome==='Win') resultR = Math.abs(resultR);
+    await onAdd({...base,resultR,strategyData:sdata,mode,session,strategyName:profile.strategy?.name});
     setSaving(false);
   };
 
@@ -1603,10 +1595,13 @@ function AddTradePage({profile,onAdd}) {
             </div>
           </div>
           <div style={{marginTop:16,maxWidth:200}}>
-            <div className="f" style={{margin:0}}><label>Result (R)</label>
-              <input type="number" step="0.01" value={base.resultR} onChange={e=>setBase({...base,resultR:e.target.value})}
-                placeholder="e.g. 2.5 or -1" required/>
+            <div className="f" style={{margin:0}}>
+              <label>Result (R) — enter positive value</label>
+              <input type="number" step="0.01" min="0" value={base.resultR} onChange={e=>setBase({...base,resultR:e.target.value})} placeholder="e.g. 1 or 2.5" required/>
             </div>
+          </div>
+          <div style={{marginTop:8,fontSize:12,color:'var(--text3)',fontFamily:'var(--mono)'}}>
+            Loss values are automatically stored as negative.
           </div>
         </div>
         {!!fields.length&&(
@@ -1623,8 +1618,7 @@ function AddTradePage({profile,onAdd}) {
         <div className="fp page-enter s2">
           <div className="fp-title">Post-Trade Notes</div>
           <div className="f" style={{margin:0}}>
-            <textarea value={base.notes} onChange={e=>setBase({...base,notes:e.target.value})}
-              placeholder="What went well? What would you change? Any market observations…"/>
+            <textarea value={base.notes} onChange={e=>setBase({...base,notes:e.target.value})} placeholder="What went well? What would you change? Any market observations…"/>
           </div>
         </div>
         <button type="submit" className="commit-btn" disabled={saving}>
@@ -1671,7 +1665,6 @@ function InsightsPage({trades, fields}) {
       if(!days[d]) days[d]={r:0,n:0};
       days[d].r+=parseFloat(t.resultR||0); days[d].n++;
     });
-    // Session stats
     const sessions={};
     v.forEach(t=>{
       const s=t.session||'No Session';
@@ -1685,9 +1678,7 @@ function InsightsPage({trades, fields}) {
   const smartInsights=useMemo(()=>buildSmartInsights(filtered),[filtered]);
   const dayMx=Math.max(...Object.values(stats.days).map(d=>Math.abs(d.r)),0.01);
   const allAssets=[...new Set(trades.map(t=>t.asset).filter(Boolean))];
-  const sessUsed=[...new Set(trades.map(t=>t.session||'No Session'))];
   const hasActiveFilter=Object.values(filters).some(v=>v);
-
   const iconColor = {strength:'var(--green)',weakness:'var(--red)',neutral:'var(--accent)',info:'var(--blue)'};
 
   return (
@@ -1705,47 +1696,38 @@ function InsightsPage({trades, fields}) {
           </div>
         </div>
       </div>
-
-      {/* Export */}
       <div className="export-area">
         <button className="export-btn" onClick={()=>exportCSV(trades,'all',fields)}>{I.Download} All Trades</button>
         <button className="export-btn" onClick={()=>exportCSV(trades,'Live',fields)}>{I.Download} Live Only</button>
         <button className="export-btn" onClick={()=>exportCSV(trades,'Backtest',fields)}>{I.Download} Backtest Only</button>
         <button className="export-btn" onClick={()=>setShowFilters(f=>!f)} style={hasActiveFilter?{borderColor:'rgba(232,160,69,0.5)',color:'var(--accent)'}:{}}>{I.Filter} {showFilters?'Hide Filters':'Filter & Analyse'}{hasActiveFilter&&' •'}</button>
       </div>
-
-      {/* Filter Bar */}
       {showFilters&&(
         <div className="filter-bar page-enter">
           <div className="filter-title">Filter Trades</div>
           <div className="filter-grid">
-            <div className="flt-group">
-              <label>Asset / Pair</label>
+            <div className="flt-group"><label>Asset / Pair</label>
               <select value={filters.asset} onChange={e=>setFilters({...filters,asset:e.target.value})}>
                 <option value="">All pairs</option>
                 {allAssets.map(a=><option key={a} value={a}>{a}</option>)}
               </select>
             </div>
-            <div className="flt-group">
-              <label>Session</label>
+            <div className="flt-group"><label>Session</label>
               <select value={filters.session} onChange={e=>setFilters({...filters,session:e.target.value})}>
                 <option value="">All sessions</option>
                 {SESSIONS.map(s=><option key={s} value={s}>{s}</option>)}
               </select>
             </div>
-            <div className="flt-group">
-              <label>Outcome</label>
+            <div className="flt-group"><label>Outcome</label>
               <select value={filters.outcome} onChange={e=>setFilters({...filters,outcome:e.target.value})}>
                 <option value="">All outcomes</option>
                 {['Win','Loss','Breakeven','No Trade'].map(o=><option key={o} value={o}>{o}</option>)}
               </select>
             </div>
-            <div className="flt-group">
-              <label>Date From</label>
+            <div className="flt-group"><label>Date From</label>
               <input type="date" value={filters.dateFrom} onChange={e=>setFilters({...filters,dateFrom:e.target.value})}/>
             </div>
-            <div className="flt-group">
-              <label>Date To</label>
+            <div className="flt-group"><label>Date To</label>
               <input type="date" value={filters.dateTo} onChange={e=>setFilters({...filters,dateTo:e.target.value})}/>
             </div>
           </div>
@@ -1755,8 +1737,6 @@ function InsightsPage({trades, fields}) {
           </div>
         </div>
       )}
-
-      {/* Stats */}
       <div className="ins-grid">
         {[
           {label:'Avg Winner',val:<AnimNum val={stats.aw} dec={2} prefix="+R "/>,color:'var(--green)',sub:'Per winning trade'},
@@ -1771,8 +1751,6 @@ function InsightsPage({trades, fields}) {
           </div>
         ))}
       </div>
-
-      {/* Smart Insights */}
       <div className="ai-panel page-enter s1">
         <div className="ai-header">
           <div className="ai-icon">🧠</div>
@@ -1793,11 +1771,8 @@ function InsightsPage({trades, fields}) {
           ))}
         </div>
       </div>
-
       <EquityCurve trades={filtered}/>
       <AssetBars trades={filtered}/>
-
-      {/* Session performance */}
       {Object.keys(stats.sessions).some(k=>k!=='No Session'&&stats.sessions[k].n>0)&&(
         <>
           <div className="sl">Performance by Session</div>
@@ -1807,9 +1782,7 @@ function InsightsPage({trades, fields}) {
               return (
                 <div key={sess} className="ab-row">
                   <div className="ab-name">{sess}</div>
-                  <div className="ab-track">
-                    <div className="ab-fill" style={{width:`${(Math.abs(s.r)/mx)*100}%`,background:s.r>=0?'var(--green)':'var(--red)'}}/>
-                  </div>
+                  <div className="ab-track"><div className="ab-fill" style={{width:`${(Math.abs(s.r)/mx)*100}%`,background:s.r>=0?'var(--green)':'var(--red)'}}/></div>
                   <div className={`ab-r ${s.r>=0?'td-win':'td-loss'}`}>{rSign(s.r)}</div>
                   <div className="ab-wr">{s.n>0?((s.w/s.n)*100).toFixed(0):0}% WR</div>
                 </div>
@@ -1818,8 +1791,6 @@ function InsightsPage({trades, fields}) {
           </div>
         </>
       )}
-
-      {/* Day of week */}
       {!!Object.keys(stats.days).length&&(
         <>
           <div className="sl">Performance by Day of Week</div>
@@ -1829,9 +1800,7 @@ function InsightsPage({trades, fields}) {
               return (
                 <div key={d} className="ab-row">
                   <div className="ab-name">{d}</div>
-                  <div className="ab-track">
-                    <div className="ab-fill" style={{width:`${(Math.abs(s.r)/dayMx)*100}%`,background:s.r>=0?'var(--green)':'var(--red)'}}/>
-                  </div>
+                  <div className="ab-track"><div className="ab-fill" style={{width:`${(Math.abs(s.r)/dayMx)*100}%`,background:s.r>=0?'var(--green)':'var(--red)'}}/></div>
                   <div className={`ab-r ${s.r>=0?'td-win':'td-loss'}`}>{rSign(s.r)}</div>
                   <div className="ab-wr">{s.n} trade{s.n!==1?'s':''}</div>
                 </div>
@@ -1840,21 +1809,19 @@ function InsightsPage({trades, fields}) {
           </div>
         </>
       )}
-
-      {/* Filtered trade list */}
       {showFilters&&(
         <>
           <div className="sl">Filtered Trades</div>
           <div className="tbl-wrap">
             {!filtered.length?<div className="empty-st">No trades match your filters.</div>:(
-              <>
+              <div className="tbl-scroll">
                 <table>
                   <thead><tr>
                     <th>Date</th><th>Mode</th><th>Asset</th><th>Session</th><th>Outcome</th><th>R</th><th>Notes</th>
                   </tr></thead>
                   <tbody>
                     {[...filtered].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t=>(
-                      <tr key={t.id}>
+                      <tr key={t.id} className={rowClass(t)}>
                         <td className="td-date">{fmtD(t.date)}</td>
                         <td><span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span></td>
                         <td style={{color:'var(--text)',fontWeight:600}}>{t.asset||'—'}</td>
@@ -1866,25 +1833,7 @@ function InsightsPage({trades, fields}) {
                     ))}
                   </tbody>
                 </table>
-                <div className="trade-cards" style={{padding:'12px'}}>
-                  {[...filtered].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t=>(
-                    <div className="trade-card" key={t.id}>
-                      <div className="tc-row">
-                        <div className="tc-main">
-                          <div className="tc-asset">{t.asset||'—'}</div>
-                          <div className="tc-date">{fmtD(t.date)}</div>
-                        </div>
-                        <div className={`tc-r ${rClass(t.resultR)}`}>{rSign(t.resultR)}</div>
-                      </div>
-                      <div className="tc-meta">
-                        <span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span>
-                        {t.session&&t.session!=='No Session'&&<span className="sess-badge">{t.session}</span>}
-                        <span className={`badge ${t.outcome==='Win'?'bl':''}`} style={t.outcome==='Loss'?{background:'var(--red-g)',color:'var(--red)'}:{}}>{t.outcome}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
+              </div>
             )}
           </div>
         </>
@@ -1897,6 +1846,8 @@ function InsightsPage({trades, fields}) {
 function SettingsPage({profile,onSave}) {
   const [strat,setStrat]=useState(profile.strategy||{name:'',fields:[]});
   const [adding,setAdding]=useState(false);
+  // FIX: editing existing strategy step
+  const [editingField,setEditingField]=useState(null);
   const [nf,setNf]=useState({name:'',type:'dropdown',options:[],optIn:''});
   const [saved,setSaved]=useState(false);
   const typeLabel={dropdown:'Dropdown',text:'Free Text',checkbox:'Tick',multiselect:'Multi-Select'};
@@ -1905,8 +1856,24 @@ function SettingsPage({profile,onSave}) {
   const addF=()=>{
     if(!nf.name.trim()) return;
     if((nf.type==='dropdown'||nf.type==='multiselect')&&!nf.options.length) return;
-    save({...strat,fields:[...strat.fields,{id:genId(),name:nf.name,type:nf.type,options:nf.options}]});
+    if(editingField){
+      // Update existing field
+      save({...strat,fields:strat.fields.map(f=>f.id===editingField?{...f,name:nf.name,type:nf.type,options:nf.options}:f)});
+      setEditingField(null);
+    } else {
+      save({...strat,fields:[...strat.fields,{id:genId(),name:nf.name,type:nf.type,options:nf.options}]});
+    }
     setNf({name:'',type:'dropdown',options:[],optIn:''});setAdding(false);
+  };
+  const startEdit=f=>{
+    setEditingField(f.id);
+    setNf({name:f.name,type:f.type,options:f.options||[],optIn:''});
+    setAdding(true);
+  };
+  const cancelEdit=()=>{
+    setEditingField(null);
+    setAdding(false);
+    setNf({name:'',type:'dropdown',options:[],optIn:''});
   };
   const rmF=id=>save({...strat,fields:strat.fields.filter(f=>f.id!==id)});
   const mvF=(i,d)=>{const a=[...strat.fields];const t=i+d;if(t<0||t>=a.length)return;[a[i],a[t]]=[a[t],a[i]];save({...strat,fields:a})};
@@ -1937,6 +1904,7 @@ function SettingsPage({profile,onSave}) {
                 </div>
               </div>
               <div className="fl-acts">
+                <button className="ib edit-btn" title="Edit step" onClick={()=>startEdit(f)}>{I.Edit}</button>
                 <button className="ib" onClick={()=>mvF(i,-1)}>{I.Up}</button>
                 <button className="ib" onClick={()=>mvF(i,1)}>{I.Down}</button>
                 <button className="ib del" onClick={()=>rmF(f.id)}>{I.Trash}</button>
@@ -1946,7 +1914,7 @@ function SettingsPage({profile,onSave}) {
         </div>
         {adding?(
           <div className="add-panel">
-            <div className="add-panel-title">New Step</div>
+            <div className="add-panel-title">{editingField?'Edit Step':'New Step'}</div>
             <div className="f"><label>Name</label>
               <input type="text" value={nf.name} autoFocus onChange={e=>setNf({...nf,name:e.target.value})} placeholder="e.g. HTF Bias, Liquidity Target…"/>
             </div>
@@ -1963,8 +1931,7 @@ function SettingsPage({profile,onSave}) {
                 <label>Options</label>
                 <div className="opts-row">
                   <div className="f" style={{margin:0,flex:1}}>
-                    <input type="text" value={nf.optIn} placeholder="Add option…"
-                      onChange={e=>setNf({...nf,optIn:e.target.value})}
+                    <input type="text" value={nf.optIn} placeholder="Add option…" onChange={e=>setNf({...nf,optIn:e.target.value})}
                       onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();if(nf.optIn.trim())setNf({...nf,options:[...nf.options,nf.optIn.trim()],optIn:''})}}}
                     />
                   </div>
@@ -1976,8 +1943,8 @@ function SettingsPage({profile,onSave}) {
               </div>
             )}
             <div style={{display:'flex',gap:8}}>
-              <button className="btn btn-primary" onClick={addF}>Save Step</button>
-              <button className="btn btn-ghost" onClick={()=>{setAdding(false);setNf({name:'',type:'dropdown',options:[],optIn:''})}}>Cancel</button>
+              <button className="btn btn-primary" onClick={addF}>{editingField?'Update Step':'Save Step'}</button>
+              <button className="btn btn-ghost" onClick={cancelEdit}>Cancel</button>
             </div>
           </div>
         ):(
