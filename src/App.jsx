@@ -441,6 +441,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .saved-flash{font-size:12px;color:var(--green);letter-spacing:2px;text-transform:uppercase;font-family:var(--sans);font-weight:700}
 .div{width:100%;height:1px;background:var(--line);margin:24px 0}
 
+/* ── Community Strategies Page ── */
+.strat-community-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px}
+.strat-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:22px 24px;transition:all 0.2s;cursor:default}
+.strat-card:hover{border-color:var(--line2);transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,0.15)}
+.strat-card-name{font-family:var(--display);font-size:22px;font-style:italic;color:var(--white);font-weight:600;margin-bottom:6px}
+.strat-card-user{font-size:11px;color:var(--accent);font-family:var(--mono);margin-bottom:14px;letter-spacing:1px}
+.strat-card-fields{display:flex;flex-direction:column;gap:5px}
+.strat-card-field{font-size:12px;color:var(--text2);font-family:var(--sans);display:flex;align-items:center;gap:6px}
+.strat-card-field::before{content:'·';color:var(--text3)}
+.strat-card-empty{font-size:12px;color:var(--text3);font-style:italic;font-family:var(--sans)}
+.strat-card-count{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+
 /* ── Loader ── */
 .loader-sh{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);position:relative;z-index:1;flex-direction:column;gap:16px}
 .loader-ring{width:36px;height:36px;border:2px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
@@ -953,6 +965,7 @@ export default function App() {
     {id:'journal',label:'Journal',icon:I.Book},
     {id:'add',label:'Log Trade',icon:I.Plus},
     {id:'insights',label:'Insights',icon:I.Brain},
+    {id:'community',label:'Community',icon:I.Globe},
     {id:'settings',label:'Strategy',icon:I.Cog},
   ];
 
@@ -1005,6 +1018,7 @@ export default function App() {
           {view==='journal'   &&<JournalPage    key="jrnl" trades={trades} fields={fields} onDelete={delTrade} onEdit={t=>{setEditingTrade(t);}}/>}
           {view==='add'       &&<AddTradePage   key="add"  profile={profile} onAdd={addTrade}/>}
           {view==='insights'  &&<InsightsPage   key="ins"  trades={trades} fields={fields}/>}
+          {view==='community' &&<CommunityPage  key="com"/>}
           {view==='settings'  &&<SettingsPage   key="set"  profile={profile} onSave={savePro}/>}
         </main>
       </div>
@@ -1380,12 +1394,14 @@ function JournalPage({trades,fields,onDelete,onEdit}) {
             <div className="tbl-scroll">
               <table>
                 <thead><tr>
+                  <th style={{width:44,textAlign:'center'}}>#</th>
                   <th>Date</th><th>Mode</th><th>Asset</th><th>Session</th>
                   <th>Outcome</th><th>R</th><th>Notes</th><th></th>
                 </tr></thead>
                 <tbody>
-                  {sorted.map(t=>(
+                  {sorted.map((t,idx)=>(
                     <tr key={t.id} className={rowClass(t)} onClick={()=>setSelectedTrade(t)} style={{cursor:'pointer'}}>
+                      <td style={{textAlign:'center',fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)',fontWeight:600}}>{idx+1}</td>
                       <td className="td-date">{fmtD(t.date)}</td>
                       <td><span className={`badge ${t.mode==='Live'?'bl':'bb'}`}>{t.mode}</span></td>
                       <td style={{color:'var(--text)',fontWeight:600}}>{t.asset||'—'}</td>
@@ -1414,10 +1430,11 @@ function JournalPage({trades,fields,onDelete,onEdit}) {
 
             {/* Mobile cards — clickable, expand to detail */}
             <div className="trade-cards" style={{padding:'12px'}}>
-              {sorted.map(t=>(
+              {sorted.map((t,idx)=>(
                 <div className={`trade-card ${cardClass(t)}`} key={t.id} onClick={()=>setSelectedTrade(t)}>
                   <div className="tc-row">
                     <div className="tc-main">
+                      <span style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--text3)',fontWeight:700,marginRight:4}}>#{idx+1}</span>
                       <div className="tc-asset">{t.asset||'—'}</div>
                       <div className="tc-date">{fmtD(t.date)}</div>
                     </div>
@@ -1837,6 +1854,66 @@ function InsightsPage({trades, fields}) {
             )}
           </div>
         </>
+      )}
+    </div>
+  );
+}
+
+// ─── Community Strategies Page ────────────────────────────────────────────────
+function CommunityPage() {
+  const [users,setUsers]=useState([]);
+  const [loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    (async()=>{
+      try{
+        const snap=await getDocs(usersCol());
+        const data=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.strategy&&u.strategy.name);
+        setUsers(data);
+      }catch(e){console.error(e)}
+      setLoading(false);
+    })();
+  },[]);
+
+  return (
+    <div className="page page-enter">
+      <div className="ph">
+        <div className="ph-ey">Community</div>
+        <div>
+          <div className="ph-title">Other<br/><em>Strategies</em></div>
+          <div className="ph-sub">See what strategies other traders in the community are using.</div>
+        </div>
+      </div>
+      {loading?(
+        <div style={{padding:64,textAlign:'center'}}>
+          <div className="loader-ring" style={{margin:'0 auto'}}/>
+          <div className="loader-txt" style={{marginTop:16}}>Loading strategies…</div>
+        </div>
+      ):!users.length?(
+        <div className="empty-st">No public strategies yet.</div>
+      ):(
+        <div className="strat-community-grid">
+          {users.map(u=>(
+            <div key={u.id} className="strat-card page-enter">
+              <div className="strat-card-name">{u.strategy.name||'Unnamed Strategy'}</div>
+              <div className="strat-card-user">@{u.username}</div>
+              <div className="strat-card-fields">
+                {(u.strategy.fields||[]).length===0?(
+                  <div className="strat-card-empty">No checklist steps defined</div>
+                ):(u.strategy.fields||[]).map((f,i)=>(
+                  <div key={i} className="strat-card-field">
+                    <span style={{color:'var(--text)'}}>{f.name}</span>
+                    <span style={{fontSize:10,color:'var(--text3)',fontFamily:'var(--mono)',marginLeft:4}}>{f.type}</span>
+                    {(f.type==='dropdown'||f.type==='multiselect')&&f.options?.length>0&&(
+                      <span style={{fontSize:10,color:'var(--text3)',fontFamily:'var(--mono)'}}>· {f.options.slice(0,3).join(', ')}{f.options.length>3?'…':''}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="strat-card-count">{(u.strategy.fields||[]).length} step{(u.strategy.fields||[]).length!==1?'s':''}</div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
